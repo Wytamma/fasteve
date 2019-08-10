@@ -1,7 +1,7 @@
 Fasteve
 ====
 
-Fasteve is a rebuild of eve using FastAPI as a base instead of Flask.
+Fasteve is a rebuild of Eve using FastAPI as a base instead of Flask.
 
 Fasteve is Simple
 -------------
