@@ -7,10 +7,12 @@ Fasteve is Simple
 -------------
 ```python
 from fasteve import Fasteve
-
-app = Fasteve()
-app.run()
+settings = {'DOMAIN': {'people': {}}}
+app = Fasteve(settings=settings)
 ```
+
+Run the server with:
+`uvicorn main:app --reload`
 
 The API is now live, ready to be consumed:
 
