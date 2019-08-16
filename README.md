@@ -5,6 +5,8 @@ Fasteve is a rebuild of Eve using FastAPI as a base instead of Flask.
 
 Fasteve is Simple
 -------------
+
+Create a file `main.py` with:
 ```python
 from fasteve import Fasteve
 settings = {'DOMAIN': {'people': {}}}
@@ -12,7 +14,9 @@ app = Fasteve(settings=settings)
 ```
 
 Run the server with:
-`uvicorn main:app --reload`
+```console
+uvicorn main:app --reload
+```
 
 The API is now live, ready to be consumed:
 
