@@ -7,14 +7,14 @@ verify_ssl = true
 pytest = "*"
 requests = "*"
 flake8 = "*"
-black = "*"
 autoflake = "*"
 mypy = "*"
+black = "*"
+pytest-cov = "*"
 
 [packages]
 fastapi = "*"
 uvicorn = "*"
-black = "*"
 
 [requires]
 python_version = "3.7"
