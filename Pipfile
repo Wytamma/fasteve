@@ -6,10 +6,15 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 requests = "*"
+flake8 = "*"
+black = "*"
+autoflake = "*"
+mypy = "*"
 
 [packages]
 fastapi = "*"
 uvicorn = "*"
+black = "*"
 
 [requires]
 python_version = "3.7"
