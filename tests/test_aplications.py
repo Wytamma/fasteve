@@ -17,6 +17,7 @@ client = TestClient(app)
 @pytest.mark.parametrize(
     "path,expected_status,expected_response",
     [
+        ("/", 200, {"_links": {"child": [{"href": "people", "title": "people"}]}}),
         (
             "/people",
             200,
