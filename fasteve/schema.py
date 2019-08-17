@@ -3,4 +3,4 @@ from uuid import UUID
 
 
 class BaseSchema(BaseModel):
-    _id: UUID = None 
+    _id: UUID

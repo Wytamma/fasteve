@@ -1,6 +1,5 @@
-
-def collections_endpoint() -> None:
+def collections_endpoint() -> dict:
     # check method
     # do action (method)
-    # render response 
+    # render response
     return {}
