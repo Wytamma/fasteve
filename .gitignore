@@ -1,2 +1,6 @@
 .vscode/settings.json
 .mypy_cache
+Pipfile.lock
+.coverage
+*.pyc
+
