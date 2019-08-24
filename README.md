@@ -15,13 +15,13 @@ app = Fasteve(settings=settings)
 
 Run the server with:
 ```console
-uvicorn main:app --reload
+$ uvicorn main:app --reload
 ```
 
 The API is now live, ready to be consumed:
 
 ```console
-$ curl -i http://example.com/people
+$ curl -i http://localhost:8000/people
 HTTP/1.1 200 OK
 ```
 
