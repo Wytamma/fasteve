@@ -8,14 +8,15 @@ Fasteve is Simple
 
 Create a file `main.py` with:
 ```python
-from fasteve import Fasteve, BaseSchema
+from fasteve import Fasteve, BaseSchema, Resource
 
 class People(BaseSchema):
-    first_name: str
-    last_name: str
+    name: str
 
-DOMAIN = {'people': {'schema':People}}
-app = Fasteve(DOMAIN=DOMAIN)
+people = Resource(route="people", schema=People)
+resources = [people]
+
+app = Fasteve(resources=resources)
 ```
 
 Run the server with:
