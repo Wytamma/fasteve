@@ -6,29 +6,27 @@ from .core import config
 
 def collections_endpoint(request: Request) -> dict:
     # check method
-    resource = request.url
+    request.url
+    print(dir(request))
     response = None
     method = request.method
+    allowed_methods = ["GET", "HEAD"]  # load this on a per resource basis
+    # do action (method)
+    if method not in allowed_methods:
+        raise HTTPException(405)
     if method in ("GET", "HEAD"):
-        response = get(resource) #QUERY PRAM
+        response = get(request)  # QUERY PRAM
     else:
         raise HTTPException(405)
-    # do action (method)
     # render response
     return response
 
 
 def home_endpoint(request: Request) -> dict:
     response = {}
-    if config.HATEOAS:
+    if config.HATEOAS:  # move to repare reponse function
         links = []
-        for resource in request.state.settings['DOMAIN'].keys():
-            links.append(
-                {
-                    "href": f"{resource}",
-                    "title": f"{resource}",
-                }
-            )
+        for resource in request.state.resources:
+            links.append({"href": f"{resource.route}", "title": f"{resource.route}"})
         response[config.LINKS] = {"child": links}
     return response
-
