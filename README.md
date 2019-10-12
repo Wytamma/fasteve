@@ -28,7 +28,16 @@ The API is now live, ready to be consumed:
 
 ```console
 $ curl -i http://localhost:8000/people
-HTTP/1.1 200 OK
+HTTP/1.1 200
+...
+{
+    "_items": [],
+    "_meta": {"max_results": 25, "total": 0, "page": 1},
+    "_links": {
+        "self": {"href": "people", "title": "people"},
+        "parent": {"href": "/", "title": "home"},
+    },
+}
 ```
 
 All you need to bring your API online is a database, a configuration file
