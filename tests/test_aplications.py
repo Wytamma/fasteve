@@ -1,4 +1,4 @@
-from fasteve import Fasteve, BaseSchema
+from fasteve import Fasteve, BaseSchema, Resource
 from starlette.testclient import TestClient
 import pytest
 
@@ -7,9 +7,11 @@ class People(BaseSchema):
     name: str
 
 
-settings = {"DOMAIN": {"people": {"schema": People}}}
+people = Resource(route="people", schema=People, resource_methods=["GET"])
 
-app = Fasteve(settings=settings)
+resources = [people]
+
+app = Fasteve(resources=resources)
 
 client = TestClient(app)
 
@@ -35,5 +37,15 @@ client = TestClient(app)
 )
 def test_get_path(path, expected_status, expected_response):
     response = client.get(path)
+    assert response.status_code == expected_status
+    assert response.json() == expected_response
+
+
+@pytest.mark.parametrize(
+    "path,expected_status,expected_response",
+    [("/", 405, {"detail": "Method Not Allowed"})],
+)
+def test_post_path(path, expected_status, expected_response):
+    response = client.post(path)
     assert response.status_code == expected_status
     assert response.json() == expected_response
