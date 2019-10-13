@@ -6,8 +6,7 @@ import pytest
 class People(BaseSchema):
     name: str
 
-
-people = Resource(route="people", schema=People, resource_methods=["GET"])
+people = Resource(route="people", schema=People, resource_methods=["GET", "POST"])
 
 resources = [people]
 
@@ -19,7 +18,7 @@ client = TestClient(app)
 @pytest.mark.parametrize(
     "path,expected_status,expected_response",
     [
-        ("/", 200, {"_links": {"child": [{"href": "people", "title": "people"}]}}),
+        ("/", 200, {"_links": {"child": [{"href": "/people", "title": "people"}]}}),
         (
             "/people",
             200,
@@ -27,7 +26,7 @@ client = TestClient(app)
                 "_items": [],
                 "_meta": {"max_results": 25, "total": 0, "page": 1},
                 "_links": {
-                    "self": {"href": "people", "title": "people"},
+                    "self": {"href": "/people", "title": "people"},
                     "parent": {"href": "/", "title": "home"},
                 },
             },
@@ -42,10 +41,19 @@ def test_get_path(path, expected_status, expected_response):
 
 
 @pytest.mark.parametrize(
-    "path,expected_status,expected_response",
-    [("/", 405, {"detail": "Method Not Allowed"})],
+    "path,expected_status,expected_response,data",
+    [
+        ("/", 405, {"detail": "Method Not Allowed"}, {}),
+        (
+            "/people",
+            200,
+            {
+            },
+            {}
+        ),
+    ],
 )
-def test_post_path(path, expected_status, expected_response):
-    response = client.post(path)
+def test_post_path(path, expected_status, expected_response, data):
+    response = client.post(path, data)
     assert response.status_code == expected_status
     assert response.json() == expected_response

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from .middleware.resource import ResourceMiddleware
-from .endpoints import collections_endpoint, home_endpoint
-from .core import config as default_config
+from .endpoints import collections_endpoint_factory, home_endpoint
+from .core import config
+from .schema import BaseResponseSchema
 from typing import List
 from .resource import Resource
 
@@ -15,7 +16,7 @@ class Fasteve(FastAPI):
         # load user settings
         # validate user settings
         self.resources = resources
-        self.config = default_config
+        self.config = config
 
         self._validate_settings()
         self._register_resource_middleware()
@@ -29,13 +30,17 @@ class Fasteve(FastAPI):
         # process resource_settings
         # add route to api
 
-        # should i be smarter about how these are registered?
-        # fastapi already as get, post, put, etc methods
-        # I don't think i can use this methods as they are really
-        # a human api. i can just go down one layer (still in fastapi)
-        # and use add_api_route then have a swtich in collections.
-        # pre and post request processing can be handeled by middlewear.
-        self.add_api_route(f"/{resource.route}", collections_endpoint)
+        class ResponseSchema(BaseResponseSchema):
+            items: List[resource.schema]
+
+        for method in resource.resource_methods:
+            self.add_api_route(
+                f"/{resource.route}", 
+                endpoint=collections_endpoint_factory(resource, method), 
+                response_model=ResponseSchema, 
+                response_model_skip_defaults=True, 
+                methods=[method]
+            )
 
     def _register_home_endpoint(self) -> None:
         self.add_api_route(f"/", home_endpoint)

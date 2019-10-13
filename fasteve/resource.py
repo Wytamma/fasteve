@@ -8,3 +8,4 @@ class Resource:
     route: str
     schema: Type[BaseModel]
     resource_methods: List[str]
+    in_schema: Type[BaseModel] = None
