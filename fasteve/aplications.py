@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from .middleware.resource import ResourceMiddleware
 from .endpoints import collections_endpoint_factory, home_endpoint
 from .core import config
@@ -29,19 +29,23 @@ class Fasteve(FastAPI):
     def register_resource(self, resource: Resource) -> None:
         # process resource_settings
         # add route to api
+        router = APIRouter()
 
         class ResponseSchema(BaseResponseSchema):
-            items: List[resource.schema]
+            data: List[resource.schema] # remove unwanted valuse from the schema 
 
         for method in resource.resource_methods:
-            self.add_api_route(
+            router.add_api_route(
                 f"/{resource.route}", 
                 endpoint=collections_endpoint_factory(resource, method), 
                 response_model=ResponseSchema, 
                 response_model_skip_defaults=True, 
                 methods=[method]
             )
-
+        self.include_router(
+            router,
+            tags=[resource.route],
+        )
     def _register_home_endpoint(self) -> None:
         self.add_api_route(f"/", home_endpoint)
 

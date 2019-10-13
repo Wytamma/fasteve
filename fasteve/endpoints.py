@@ -36,3 +36,13 @@ def home_endpoint(request: Request) -> dict:
             links.append({"href": f"/{resource.route}", "title": f"{resource.route}"})
         response[config.LINKS] = {"child": links}
     return response
+
+
+def me_endpoint(request: Request) -> dict:
+    response = {}
+    if config.HATEOAS:  # move to repare reponse function
+        links = []
+        for resource in request.app.resources:
+            links.append({"href": f"/{resource.route}", "title": f"{resource.route}"})
+        response[config.LINKS] = {"child": links}
+    return response

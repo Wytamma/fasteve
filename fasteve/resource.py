@@ -8,4 +8,5 @@ class Resource:
     route: str
     schema: Type[BaseModel]
     resource_methods: List[str]
-    in_schema: Type[BaseModel] = None
+    in_schema: Type[BaseModel] = None  # schema used as defualt
+    response_model: Type[BaseModel] = None # schema used as defualt
