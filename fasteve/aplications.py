@@ -5,10 +5,11 @@ from .core import config
 from .schema import BaseResponseSchema
 from typing import List
 from .resource import Resource
-
+from .io.mongo import Mongo
+from .io import db
 
 class Fasteve(FastAPI):
-    def __init__(self, resources: List[Resource] = []) -> None:
+    def __init__(self, resources: List[Resource] = [], data = Mongo) -> None:
 
         super().__init__()  # Instialise FastAPI super class
 
@@ -16,12 +17,17 @@ class Fasteve(FastAPI):
         # load user settings
         # validate user settings
         self.resources = resources
-        self.config = config
+        self.config = self._validate_config(config)
 
-        self._validate_settings()
         self._register_resource_middleware()
 
         self._register_home_endpoint()
+        self.mongodb = None
+        
+        self.add_event_handler("startup", db.connect)
+        self.add_event_handler("shutdown", db.close)
+        
+        self.data = data(self)  #eve pattern
 
         for resource in self.resources:
             self.register_resource(resource)
@@ -32,7 +38,7 @@ class Fasteve(FastAPI):
         router = APIRouter()
 
         class ResponseSchema(BaseResponseSchema):
-            data: List[resource.schema] # remove unwanted valuse from the schema 
+            data: List[resource.schema] # remove unwanted values from the schema 
 
         for method in resource.resource_methods:
             router.add_api_route(
@@ -55,5 +61,5 @@ class Fasteve(FastAPI):
         # therfore I can use request.app.resources
         self.add_middleware(ResourceMiddleware, resources=self.resources)
 
-    def _validate_settings(self) -> None:
-        pass
+    def _validate_config(self, config) -> None:
+        return config

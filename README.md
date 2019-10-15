@@ -31,9 +31,9 @@ $ curl -i http://localhost:8000/people
 HTTP/1.1 200
 ...
 {
-    "_items": [],
-    "_meta": {"max_results": 25, "total": 0, "page": 1},
-    "_links": {
+    "data": [],
+    "meta": {"max_results": 25, "total": 0, "page": 1},
+    "links": {
         "self": {"href": "people", "title": "people"},
         "parent": {"href": "/", "title": "home"},
     },

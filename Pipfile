@@ -15,6 +15,7 @@ pytest-cov = "*"
 [packages]
 fastapi = "*"
 uvicorn = "*"
+motor = "*"
 
 [requires]
 python_version = "3.7"
