@@ -1,7 +1,7 @@
 Fasteve
 ====
 
-Fasteve is a rebuild of [Eve](https://github.com/pyeve/eve/tree/master/eve) using [FastAPI](https://github.com/tiangolo/fastapi/tree/master/fastapi) as a base.
+Fasteve is a rebuild of [Eve](https://github.com/pyeve/eve) using [FastAPI](https://github.com/tiangolo/fastapi) as a base.
 
 Fasteve is Simple
 -------------
