@@ -99,10 +99,7 @@ class Mongo(DataLayer):
             ?where={"name": "john doe"}
         while the second would look like: ::
             ?where=name=="john doe"
-        The resultset if paginated.
-        :param resource: resource name.
-        :param req: a :class:`ParsedRequest`instance.
-        :param sub_resource_lookup: sub-resource lookup from the endpoint url.
+        :param resource: Resource object.
         """
         # precess query 
         q = {}
