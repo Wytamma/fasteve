@@ -19,7 +19,7 @@ resources = [people]
 app = Fasteve(resources=resources)
 ```
 
-Start a database ([mondodb defualt](https://hub.docker.com/_/mongo)):
+Start a database ([mongodb defualt](https://hub.docker.com/_/mongo)):
 ```console
 $ docker run --name mongodb --rm -p 27017:27017 mongo
 ```
