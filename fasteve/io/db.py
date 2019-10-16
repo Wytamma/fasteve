@@ -14,7 +14,6 @@ db = DataBase()
 async def get_database() -> AsyncIOMotorClient:
     return db.client
 
-@utils.log
 def connect() -> None:
     print(config.MONGODB_URL)
     client = AsyncIOMotorClient(

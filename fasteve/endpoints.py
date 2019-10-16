@@ -9,7 +9,7 @@ from .schema import BaseSchema
 from .resource import Resource
 from .core.utils import log
 
-@log
+
 async def process_collections_request(request: Request, resource: Resource):
     methods = {'GET': get, 'POST': get}
     try:
@@ -39,6 +39,7 @@ def home_endpoint(request: Request) -> dict:
 
 
 def me_endpoint(request: Request) -> dict:
+    """for auth / user info"""
     response = {}
     if config.HATEOAS:  # move to repare reponse function
         links = []

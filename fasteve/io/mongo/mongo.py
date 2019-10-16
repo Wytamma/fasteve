@@ -104,18 +104,18 @@ class Mongo(DataLayer):
         :param req: a :class:`ParsedRequest`instance.
         :param sub_resource_lookup: sub-resource lookup from the endpoint url.
         """
-        collection = await self.get_collection(resource.route)
+        # precess query 
+        q = {}
+        collection = await self.motor(resource)
         items = []
-        cursor = collection.find({})
-        
-        for row in await cursor.to_list(length=100):
-            print('4')
+        # Perform find and iterate results
+        # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
+        async for row in collection.find(q):
             items.append(row)
-        print(items)
         return items
 
-    async def get_collection(self, collection_name: str) -> Collection:
+    async def motor(self, resource: str) -> Collection:
         db = await get_database()
-        return db[config.MONGO_DB][collection_name]
+        return db[config.MONGO_DB][resource.route]
 
         

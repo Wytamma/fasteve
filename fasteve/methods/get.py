@@ -5,7 +5,7 @@ from fasteve.core.utils import log
 
 async def get(request: Request) -> dict:
     res = await request.app.data.find(request.state.resource)
-    return {'data':res}
+    return {'data': res}
 
 
 def getitem() -> dict:
