@@ -1,7 +1,7 @@
 Fasteve
 ====
 
-Fasteve is a rebuild of Eve using FastAPI as a base instead of Flask.
+Fasteve is a rebuild of [Eve](https://github.com/pyeve/eve/tree/master/eve) using [FastAPI](https://github.com/tiangolo/fastapi/tree/master/fastapi) as a base.
 
 Fasteve is Simple
 -------------
@@ -17,6 +17,11 @@ people = Resource(route="people", schema=People)
 resources = [people]
 
 app = Fasteve(resources=resources)
+```
+
+Start a database ([mondodb defualt](https://hub.docker.com/_/mongo)):
+```console
+$ docker run --name mongodb --rm -p 27017:27017 mongo
 ```
 
 Run the server with:
@@ -39,10 +44,6 @@ HTTP/1.1 200
     },
 }
 ```
-
-All you need to bring your API online is a database, a configuration file
-(defaults to ``settings.py``) and a launch script.  Overall, you will find that
-configuring and fine-tuning your API is a very simple process.
 
 Features (TODO)
 ---------------
