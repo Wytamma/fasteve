@@ -19,7 +19,7 @@ resources = [people]
 app = Fasteve(resources=resources)
 ```
 
-Start a database ([mongodb defualt](https://hub.docker.com/_/mongo)):
+Start a database ([mongodb default](https://hub.docker.com/_/mongo)):
 ```console
 $ docker run --name mongodb --rm -p 27017:27017 mongo
 ```
@@ -39,7 +39,7 @@ HTTP/1.1 200
     "data": [],
     "meta": {"max_results": 25, "total": 0, "page": 1},
     "links": {
-        "self": {"href": "people", "title": "people"},
+        "self": {"href": "/people", "title": "people"},
         "parent": {"href": "/", "title": "home"},
     },
 }

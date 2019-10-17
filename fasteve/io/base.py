@@ -53,8 +53,22 @@ class ConnectionException(Exception):
             msg += "Driver exception: %s" % repr(self.driver_exception)
         return msg
 
+class Client:
+    """ Database client where you connect to the database
+    """
 
-class DataLayer(object):
+    async def get_database():
+        raise NotImplementedError
+
+    def connect():
+        raise NotImplementedError
+
+    def close():
+        raise NotImplementedError
+
+
+
+class DataLayer:
     """ Base data layer class. Defines the interface that actual data-access
     classes, being subclasses, must implement. Implemented as a Flask
     extension.

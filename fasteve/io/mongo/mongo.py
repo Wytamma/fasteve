@@ -1,12 +1,34 @@
 
-from fasteve.io.base import DataLayer, ConnectionException, BaseJSONEncoder
+from fasteve.io.base import DataLayer, ConnectionException, BaseJSONEncoder, Client
 from fasteve.core import config
 from fasteve.core.utils import str_to_date
 from fastapi import FastAPI
 import asyncio
 from fasteve.resource import Resource
 from pymongo.collection import Collection
-from fasteve.io.db import get_database
+from motor.motor_asyncio import AsyncIOMotorClient
+from fasteve.core.utils import log
+
+
+class DataBase:
+    client: AsyncIOMotorClient = None
+
+db = DataBase()
+
+class MongoClient(Client):
+    async def get_database() -> AsyncIOMotorClient:
+        return db.client
+
+    def connect() -> None:
+        print(config.MONGODB_URL)
+        client = AsyncIOMotorClient(
+            str(config.MONGODB_URL)
+        )
+        db.client = client
+
+    def close():
+        db.client.close()
+
 
 class MongoJSONEncoder(BaseJSONEncoder):
     """ Proprietary JSONEconder subclass used by the json render function.
@@ -110,9 +132,28 @@ class Mongo(DataLayer):
         async for row in collection.find(q):
             items.append(row)
         return items
+    
+    @log
+    async def insert(self, resource: Resource, payload):
+        """ 
+        """
+        # precess query 
+        payload = payload.dict()
+        collection = await self.motor(resource)
+        # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
+        try:
+            result = await collection.insert_one(payload)
+        except Exception as e:
+            print(e)
+        return [{'id': str(result.inserted_id), 'name': payload['name']}]
 
     async def motor(self, resource: str) -> Collection:
-        db = await get_database()
+        # maybe it would be better to use inject db with 
+        # Depends(get_database) at the path operation function?
+        # By better I mean more FastAPI-ish. 
+        # However, then I have to pass the db all the way down to the 
+        # datalayer...
+        db = await MongoClient.get_database()  
         return db[config.MONGO_DB][resource.route]
 
         

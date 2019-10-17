@@ -5,8 +5,7 @@ from .core import config
 from .schema import BaseResponseSchema
 from typing import List
 from .resource import Resource
-from .io.mongo import Mongo
-from .io import db
+from .io.mongo import Mongo, MongoClient
 
 class Fasteve(FastAPI):
     def __init__(self, resources: List[Resource] = [], data = Mongo) -> None:
@@ -22,10 +21,9 @@ class Fasteve(FastAPI):
         self._register_resource_middleware()
 
         self._register_home_endpoint()
-        self.mongodb = None
         
-        self.add_event_handler("startup", db.connect)
-        self.add_event_handler("shutdown", db.close)
+        self.add_event_handler("startup", MongoClient.connect)
+        self.add_event_handler("shutdown", MongoClient.close)
         
         self.data = data(self)  #eve pattern
 

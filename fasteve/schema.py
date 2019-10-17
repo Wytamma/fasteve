@@ -4,7 +4,7 @@ from typing import List, Optional
 
 
 class BaseSchema(BaseModel):
-    id: Optional[UUID]
+    id: Optional[str]
     etag: Optional[str]
     updated: Optional[str]
     created: Optional[str]

@@ -1,1 +1,1 @@
-from .mongo import Mongo
+from .mongo import Mongo, MongoClient
