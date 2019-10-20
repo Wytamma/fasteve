@@ -35,7 +35,7 @@ class Fasteve(FastAPI):
         namer = APInamer()
 
         class ResponseSchema(BaseResponseSchema):
-            data: List[resource.schema] # remove unwanted values from the schema 
+            data: List[resource.response_model] # remove unwanted values from the schema 
 
         for method in resource.resource_methods:
             namer.add_api_name(

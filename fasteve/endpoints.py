@@ -24,7 +24,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         async def collections_endpoint(request: Request) -> dict:
             return await process_collections_request(request)
     else:
-        async def collections_endpoint(request: Request, in_schema:resource.in_schema or resource.schema) -> dict:
+        async def collections_endpoint(request: Request, in_schema:resource.in_schema) -> dict:
             request.payload = dict(in_schema)
             return await process_collections_request(request)
     return collections_endpoint
