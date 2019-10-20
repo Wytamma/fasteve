@@ -1,14 +1,12 @@
-
 from fasteve.io.base import DataLayer, ConnectionException, BaseJSONEncoder, Client
 from fasteve.core import config
 from fasteve.core.utils import str_to_date
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import asyncio
 from fasteve.resource import Resource
 from pymongo.collection import Collection
 from motor.motor_asyncio import AsyncIOMotorClient
 from fasteve.core.utils import log
-
 
 class DataBase:
     client: AsyncIOMotorClient = None
@@ -113,7 +111,7 @@ class Mongo(DataLayer):
     )
     def init_app(self) -> None:
         self.mongo_prefix = None
-    
+    @log
     async def find(self, resource: Resource):
         """ Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
@@ -129,8 +127,12 @@ class Mongo(DataLayer):
         items = []
         # Perform find and iterate results
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
-        async for row in collection.find(q):
-            items.append(row)
+        try:
+            async for row in collection.find(q):
+                row['id'] = row['_id']
+                items.append(row)
+        except Exception as e:
+            HTTPException(500, e)
         return items
     
     @log
@@ -138,14 +140,16 @@ class Mongo(DataLayer):
         """ 
         """
         # precess query 
-        payload = payload.dict()
         collection = await self.motor(resource)
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
             result = await collection.insert_one(payload)
         except Exception as e:
-            print(e)
-        return [{'id': str(result.inserted_id), 'name': payload['name']}]
+            HTTPException(500, e)
+        payload['id'] = result.inserted_id
+        payload['created'] = result.inserted_id.generation_time
+        payload['updated'] = result.inserted_id.generation_time
+        return [payload]
 
     async def motor(self, resource: str) -> Collection:
         # maybe it would be better to use inject db with 
@@ -153,7 +157,58 @@ class Mongo(DataLayer):
         # By better I mean more FastAPI-ish. 
         # However, then I have to pass the db all the way down to the 
         # datalayer...
-        db = await MongoClient.get_database()  
-        return db[config.MONGO_DB][resource.route]
+        try:
+            db = await MongoClient.get_database() 
+        except Exception as e:
+            HTTPException(500, e)
+        return db[config.MONGO_DB][resource.name]
 
-        
+
+def _convert_sort_request_to_dict(self, re):
+    """ Converts the contents of a `ParsedRequest`'s `sort` property to
+    a dict
+    """
+    client_sort = {}
+    if req and req.sort:
+        try:
+            # assume it's mongo syntax (ie. ?sort=[("name", 1)])
+            client_sort = ast.literal_eval(req.sort)
+        except ValueError:
+            # it's not mongo so let's see if it's a comma delimited string
+            # instead (ie. "?sort=-age, name").
+            sort = []
+            for sort_arg in [s.strip() for s in req.sort.split(",")]:
+                if sort_arg[0] == "-":
+                    sort.append((sort_arg[1:], -1))
+                else:
+                    sort.append((sort_arg, 1))
+            if len(sort) > 0:
+                client_sort = sort
+        except Exception as e:
+            self.app.logger.exception(e)
+            abort(400, description=debug_error_message(str(e)))
+    return client_sort
+
+def _convert_where_request_to_dict(self, req):
+    """ Converts the contents of a `ParsedRequest`'s `where` property to
+    a dict
+    """
+    query = {}
+    if req and req.where:
+        try:
+            query = self._sanitize(json.loads(req.where))
+        except HTTPException:
+            # _sanitize() is raising an HTTP exception; let it fire.
+            raise
+        except:
+            # couldn't parse as mongo query; give the python parser a shot.
+            try:
+                query = parse(req.where)
+            except ParseError:
+                abort(
+                    400,
+                    description=debug_error_message(
+                        "Unable to parse `where` clause"
+                    ),
+                )
+    return query

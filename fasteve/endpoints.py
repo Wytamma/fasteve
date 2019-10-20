@@ -19,32 +19,32 @@ async def process_collections_request(request: Request):
         HTTPException(405)
 
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
-    """dynamicly create collection endpoint with or without schema"""
-    if method in ("GET", "DELETE"):  # no in_schema validation on GET DELETE request
+    """Dynamically create collection endpoint with or without schema"""
+    if method in ("GET", "DELETE", "HEAD"):  # no in_schema validation on GET DELETE HEAD request
         async def collections_endpoint(request: Request) -> dict:
             return await process_collections_request(request)
     else:
         async def collections_endpoint(request: Request, in_schema:resource.in_schema or resource.schema) -> dict:
-            request.payload = in_schema
+            request.payload = dict(in_schema)
             return await process_collections_request(request)
     return collections_endpoint
 
 def home_endpoint(request: Request) -> dict:
     response = {}
-    if config.HATEOAS:  # move to repare reponse function
+    if config.HATEOAS:  # move to repare response function
         links = []
         for resource in request.app.resources:
-            links.append({"href": f"/{resource.route}", "title": f"{resource.route}"})
+            links.append({"href": f"/{resource.name}", "title": f"{resource.name}"})
         response[config.LINKS] = {"child": links}
-    return {'id':result.inserted_id}
+    return response
 
 
 def me_endpoint(request: Request) -> dict:
     """for auth / user info"""
     response = {}
-    if config.HATEOAS:  # move to repare reponse function
+    if config.HATEOAS:  # move to repare response function
         links = []
         for resource in request.app.resources:
-            links.append({"href": f"/{resource.route}", "title": f"{resource.route}"})
+            links.append({"href": f"/{resource.name}", "title": f"{resource.name}"})
         response[config.LINKS] = {"child": links}
     return response

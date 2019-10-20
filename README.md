@@ -13,7 +13,7 @@ from fasteve import Fasteve, BaseSchema, Resource
 class People(BaseSchema):
     name: str
 
-people = Resource(route="people", schema=People)
+people = Resource(name="people", schema=People)
 resources = [people]
 
 app = Fasteve(resources=resources)

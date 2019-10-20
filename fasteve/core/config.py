@@ -11,3 +11,12 @@ MONGODB_URL = config("MONGODB_URL", cast=str, default="mongodb://$MONGO_USER:$MO
 MONGO_DB = config("MONGO_DB", cast=str, default="fasteve_db")
 MAX_CONNECTIONS_COUNT  = config("MAX_CONNECTIONS_COUNT", cast=str, default="_links")
 MIN_CONNECTIONS_COUNT  = config("MIN_CONNECTIONS_COUNT", cast=str, default="_links")
+
+# default query parameters
+QUERY_WHERE = config("QUERY_WHERE", cast=str, default="where")
+QUERY_PROJECTION = config("QUERY_PROJECTION", cast=str, default="projection")
+QUERY_SORT = config("QUERY_SORT", cast=str, default="sort")
+QUERY_PAGE = config("QUERY_PAGE", cast=str, default="page")
+QUERY_MAX_RESULTS = config("QUERY_MAX_RESULTS", cast=str, default="max_results")
+QUERY_EMBEDDED = config("QUERY_EMBEDDED", cast=str, default="embedded")
+QUERY_AGGREGATION = config("QUERY_AGGREGATION", cast=str, default="aggregate")

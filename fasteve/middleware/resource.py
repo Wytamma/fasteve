@@ -13,6 +13,6 @@ class ResourceMiddleware(BaseHTTPMiddleware):
         self.resources = resources
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        resource = next((resource for resource in self.resources if resource.route in request.scope['path']), None)
+        resource = next((resource for resource in self.resources if resource.name in request.scope['path']), None)
         request.state.resource = resource
         return await call_next(request)
