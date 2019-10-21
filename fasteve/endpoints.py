@@ -20,11 +20,17 @@ async def process_collections_request(request: Request):
 
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create collection endpoint with or without schema"""
-    if method in ("GET", "DELETE", "HEAD"):  # no in_schema validation on GET DELETE HEAD request
-        async def collections_endpoint(request: Request) -> dict:
+    if method in ("GET", "DELETE", "HEAD"):  
+        # no in_schema validation on GET DELETE HEAD request
+        async def collections_endpoint(
+            request: Request
+            ) -> dict:
             return await process_collections_request(request)
     else:
-        async def collections_endpoint(request: Request, in_schema:resource.in_schema) -> dict:
+        async def collections_endpoint(
+            request: Request, 
+            in_schema:resource.in_schema
+            ) -> dict:
             request.payload = dict(in_schema)
             return await process_collections_request(request)
     return collections_endpoint

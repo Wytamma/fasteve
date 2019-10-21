@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APInamer
+from fastapi import FastAPI, APIRouter
 from .middleware.resource import ResourceMiddleware
 from .endpoints import collections_endpoint_factory, home_endpoint
 from .core import config
@@ -32,25 +32,25 @@ class Fasteve(FastAPI):
     def register_resource(self, resource: Resource) -> None:
         # process resource_settings
         # add name to api
-        namer = APInamer()
+        router = APIRouter()
 
         class ResponseSchema(BaseResponseSchema):
             data: List[resource.response_model] # remove unwanted values from the schema 
 
         for method in resource.resource_methods:
-            namer.add_api_name(
+            router.add_api_route(
                 f"/{resource.name}", 
                 endpoint=collections_endpoint_factory(resource, method), 
                 response_model=ResponseSchema, 
                 response_model_skip_defaults=True, 
                 methods=[method]
             )
-        self.include_namer(
-            namer,
+        self.include_router(
+            router,
             tags=[resource.name],
         )
     def _register_home_endpoint(self) -> None:
-        self.add_api_name(f"/", home_endpoint)
+        self.add_api_route(f"/", home_endpoint)
 
     def _register_resource_middleware(self) -> None:
         """Pass resources to every request"""

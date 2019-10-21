@@ -111,6 +111,7 @@ class Mongo(DataLayer):
     )
     def init_app(self) -> None:
         self.mongo_prefix = None
+    
     @log
     async def find(self, resource: Resource):
         """ Retrieves a set of documents matching a given request. Queries can
@@ -133,6 +134,7 @@ class Mongo(DataLayer):
                 items.append(row)
         except Exception as e:
             HTTPException(500, e)
+        print('count', await collection.count_documents(q))
         return items
     
     @log

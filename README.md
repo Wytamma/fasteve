@@ -21,7 +21,7 @@ app = Fasteve(resources=resources)
 
 Start a database ([mongodb default](https://hub.docker.com/_/mongo)):
 ```console
-$ docker run --name mongodb --rm -p 27017:27017 mongo
+$ docker run --rm -p 27017:27017 mongo
 ```
 
 Run the server with:

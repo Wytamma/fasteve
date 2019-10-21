@@ -2,6 +2,7 @@ from fasteve import Fasteve, BaseSchema, Resource
 from starlette.testclient import TestClient
 import pytest
 from pytest import fixture
+from fasteve.io.mongo import MongoClient
 
 class People(BaseSchema):
     name: str
@@ -30,8 +31,8 @@ def test_client(test_user):
         yield test_client
 
     import asyncio
-    db = asyncio.run(get_database())
-    db[app.config.MONGO_DB]['users'].delete_one({"username": test_user["user"]["username"]})
+    db = asyncio.run(MongoClient.get_database())
+    db.drop_database(app.config.MONGO_DB)
 
 
 @pytest.mark.parametrize(
@@ -77,5 +78,5 @@ def test_get_path(test_client, path, expected_status, expected_response):
 def test_post_path(test_client, path, data, expected_status, expected_response):
     response = test_client.post(path, json={'name': 'Curie'})
     assert response.status_code == expected_status
-    # whats the correct reponse?
+    # what's the correct response?
     assert response.json()['data'][0]['name'] == expected_response['name']
