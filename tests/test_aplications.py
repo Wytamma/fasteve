@@ -26,13 +26,13 @@ def test_user():
 
 @fixture(scope="session")
 def test_client(test_user):
-    app.config.MONGO_DB = 'testing'
+    app.config.MONGODB_DATABASE = 'testing'
     with TestClient(app) as test_client:
         yield test_client
 
     import asyncio
     db = asyncio.run(MongoClient.get_database())
-    db.drop_database(app.config.MONGO_DB)
+    db.drop_database(app.config.MONGODB_DATABASE)
 
 
 @pytest.mark.parametrize(

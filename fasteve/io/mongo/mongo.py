@@ -19,7 +19,7 @@ class MongoClient(Client):
 
     def connect() -> None:
         client = AsyncIOMotorClient(
-            str(config.MONGODB_URL)
+            str(config.MONGODB_URI)
         )
         db.client = client
 
@@ -162,7 +162,7 @@ class Mongo(DataLayer):
             db = await MongoClient.get_database() 
         except Exception as e:
             HTTPException(500, e)
-        return db[config.MONGO_DB][resource.name]
+        return db[config.MONGODB_DATABASE][resource.name]
 
 
 def _convert_sort_request_to_dict(self, re):
