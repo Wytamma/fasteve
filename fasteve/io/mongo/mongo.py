@@ -18,7 +18,6 @@ class MongoClient(Client):
         return db.client
 
     def connect() -> None:
-        print(config.MONGODB_URL)
         client = AsyncIOMotorClient(
             str(config.MONGODB_URL)
         )

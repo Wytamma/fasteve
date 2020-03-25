@@ -48,7 +48,7 @@ def home_endpoint(request: Request) -> dict:
 def me_endpoint(request: Request) -> dict:
     """for auth / user info"""
     response = {}
-    if config.HATEOAS:  # move to repare response function
+    if config.HATEOAS:  # move to prepare response function
         links = []
         for resource in request.app.resources:
             links.append({"href": f"/{resource.name}", "title": f"{resource.name}"})

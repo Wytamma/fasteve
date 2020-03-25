@@ -21,10 +21,10 @@ class Fasteve(FastAPI):
 
         self._register_home_endpoint()
         
-        self.add_event_handler("startup", MongoClient.connect)
-        self.add_event_handler("shutdown", MongoClient.close)
+        self.add_event_handler("startup", MongoClient.connect)  # this can't be in the application layer i.e. needs to come from data layer
+        self.add_event_handler("shutdown", MongoClient.close)  # this can't be in the application layer i.e. needs to come from data layer
         
-        self.data = data(self)  #eve pattern
+        self.data = data(self)  # eve pattern
 
         for resource in self.resources:
             self.register_resource(resource)
