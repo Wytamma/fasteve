@@ -18,9 +18,14 @@ class MongoClient(Client):
         return db.client
 
     def connect() -> None:
-        client = AsyncIOMotorClient(
-            str(config.MONGODB_URI)
-        )
+        try:
+            client = AsyncIOMotorClient(
+                str(config.MONGODB_URI)
+            )
+            # check that the client is connected
+            print(client.server_info())
+        except:
+            HTTPException(500, e)
         db.client = client
 
     def close():
@@ -112,7 +117,7 @@ class Mongo(DataLayer):
         self.mongo_prefix = None
     
     @log
-    async def find(self, resource: Resource):
+    async def find(self, resource: Resource, args: dict):
         """ Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
         python syntax. The first kind of query would look like: ::
@@ -128,13 +133,13 @@ class Mongo(DataLayer):
         # Perform find and iterate results
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
-            async for row in collection.find(q):
+            async for row in collection.find(q, skip=args['skip'], limit=args['limit']):
                 row['id'] = row['_id']
                 items.append(row)
         except Exception as e:
             HTTPException(500, e)
-        print('count', await collection.count_documents(q))
-        return items
+        count = await collection.count_documents(q)
+        return items, count
     
     @log
     async def insert(self, resource: Resource, payload):
@@ -148,8 +153,6 @@ class Mongo(DataLayer):
         except Exception as e:
             HTTPException(500, e)
         payload['id'] = result.inserted_id
-        payload['created'] = result.inserted_id.generation_time
-        payload['updated'] = result.inserted_id.generation_time
         return [payload]
 
     async def motor(self, resource: str) -> Collection:

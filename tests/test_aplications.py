@@ -38,7 +38,7 @@ def test_client(test_user):
 @pytest.mark.parametrize(
     "path,expected_status,expected_response",
     [
-        ("/", 200, {"_links": {"child": [{"href": "/people", "title": "people"}]}}),
+        ("/", 200, {"links": {"child": [{"href": "/people", "title": "people"}]}}),
         (
             "/people",
             200,

@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter
 from .middleware.resource import ResourceMiddleware
 from .endpoints import collections_endpoint_factory, home_endpoint
 from .core import config
-from .schema import BaseResponseSchema
+from .schema import BaseResponseSchema, BaseOutSchema, BaseSchema
 from typing import List
 from .resource import Resource
 from .io.mongo import Mongo, MongoClient
@@ -34,17 +34,32 @@ class Fasteve(FastAPI):
         # add name to api
         router = APIRouter()
 
+        # add base out_schema 
+        out_schema = type('Response', (resource.response_model, BaseOutSchema), {})
+
         class ResponseSchema(BaseResponseSchema):
-            data: List[resource.response_model] # remove unwanted values from the schema 
+            data: List[out_schema] 
+        
+        class PostResponseSchema(BaseSchema):
+            data: List[out_schema] 
 
         for method in resource.resource_methods:
-            router.add_api_route(
-                f"/{resource.name}", 
-                endpoint=collections_endpoint_factory(resource, method), 
-                response_model=ResponseSchema, 
-                response_model_skip_defaults=True, 
-                methods=[method]
-            )
+            if method == 'POST':
+                router.add_api_route(
+                    f"/{resource.name}", 
+                    endpoint=collections_endpoint_factory(resource, method), 
+                    response_model=PostResponseSchema, 
+                    response_model_exclude_unset=True, 
+                    methods=[method],
+                ) 
+            else: 
+                router.add_api_route(
+                    f"/{resource.name}", 
+                    endpoint=collections_endpoint_factory(resource, method), 
+                    response_model=ResponseSchema, 
+                    response_model_exclude_unset=True, 
+                    methods=[method],
+                )
         self.include_router(
             router,
             tags=[resource.name],

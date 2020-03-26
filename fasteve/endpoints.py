@@ -20,12 +20,21 @@ async def process_collections_request(request: Request):
 
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create collection endpoint with or without schema"""
-    if method in ("GET", "DELETE", "HEAD"):  
-        # no in_schema validation on GET DELETE HEAD request
+    if method in ("DELETE", "HEAD"):  
+        # no in_schema validation on DELETE HEAD request
         async def collections_endpoint(
-            request: Request
+            request: Request,
             ) -> dict:
-            return await process_collections_request(request)
+            return await process_collections_request(request)   
+    elif method == 'GET':
+        # no in_schema validation on GET request
+        # query prams
+        async def collections_endpoint(
+            request: Request,
+            max_results: int = 25,
+            page: int = 1,
+            ) -> dict:
+            return await process_collections_request(request)   
     else:
         async def collections_endpoint(
             request: Request, 

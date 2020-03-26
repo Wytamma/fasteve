@@ -20,4 +20,5 @@ def str_to_date(string):
     """
     return datetime.strptime(string, config.DATE_FORMAT) if string else None
 
-
+def parse_request(request):
+    pass

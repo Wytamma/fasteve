@@ -18,11 +18,18 @@ class ObjectIdStr(str):
 
 
 class BaseSchema(BaseModel):
-    id:  Optional[ObjectIdStr]
-    etag: Optional[str]
-    updated: Optional[datetime]
-    created: Optional[datetime]
+    pass
 
-class BaseResponseSchema(BaseModel):
-    meta: dict = {}
-    links: dict = {}
+class BaseOutSchema(BaseSchema):
+    id:  ObjectIdStr
+    updated: datetime
+    created: datetime
+
+class MetaModel(BaseSchema):
+    page: Optional[int]
+    max_results: Optional[int]
+    total: Optional[int]
+
+class BaseResponseSchema(BaseSchema):
+    meta: Optional[MetaModel]
+    links: Optional[dict]
