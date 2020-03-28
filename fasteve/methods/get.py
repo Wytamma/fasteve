@@ -12,7 +12,7 @@ async def get(request: Request) -> dict:
     args["limit"] = int(query_params['max_results']) if 'max_results' in query_params else 25
     page = int(query_params['page']) if 'page' in query_params else 1
     args["skip"] = (page - 1) * args["limit"] if page > 1 else 0
-
+    
     try:
         documents, count = await request.app.data.find(request.state.resource, args)
     except Exception as e:

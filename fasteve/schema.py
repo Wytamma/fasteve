@@ -1,35 +1,21 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, BaseConfig
 from typing import List, Optional
-from bson.objectid import ObjectId
-from bson import ObjectId
 from datetime import datetime
+from bson import ObjectId
 
-
-class ObjectIdStr(str):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not isinstance(v, ObjectId):
-            raise ValueError("Not a valid ObjectId")
-        return str(v)
-
+json_encoders = {
+    ObjectId: lambda x: str(x)
+}
 
 class BaseSchema(BaseModel):
-    pass
+    class Config:
+        json_encoders = json_encoders
 
-class BaseOutSchema(BaseSchema):
-    id:  ObjectIdStr
-    updated: datetime
-    created: datetime
-
-class MetaModel(BaseSchema):
+class MetaModel(BaseModel):
     page: Optional[int]
     max_results: Optional[int]
     total: Optional[int]
 
-class BaseResponseSchema(BaseSchema):
+class BaseResponseSchema(BaseModel):
     meta: Optional[MetaModel]
     links: Optional[dict]

@@ -1,5 +1,6 @@
 from functools import wraps
- 
+from bson import ObjectId
+
 def log(func):
     """
     A decorator that wraps the passed in function and logs 
@@ -22,3 +23,14 @@ def str_to_date(string):
 
 def parse_request(request):
     pass
+
+class ObjectID(str):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not ObjectId.is_valid(str(v)):
+            return ValueError(f"Not a valid ObjectId: {v}")
+        return ObjectId(str(v))

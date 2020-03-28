@@ -2,10 +2,13 @@ from fastapi import FastAPI, APIRouter
 from .middleware.resource import ResourceMiddleware
 from .endpoints import collections_endpoint_factory, home_endpoint
 from .core import config
-from .schema import BaseResponseSchema, BaseOutSchema, BaseSchema
+from .schema import BaseResponseSchema, BaseSchema
 from typing import List
 from .resource import Resource
 from .io.mongo import Mongo, MongoClient
+from .core.utils import log, ObjectID
+from datetime import datetime
+from pydantic import BaseModel, create_model, BaseConfig
 
 class Fasteve(FastAPI):
     def __init__(self, resources: List[Resource] = [], data = Mongo) -> None:
@@ -28,27 +31,36 @@ class Fasteve(FastAPI):
 
         for resource in self.resources:
             self.register_resource(resource)
-
+    @log
     def register_resource(self, resource: Resource) -> None:
         # process resource_settings
         # add name to api
         router = APIRouter()
 
-        # add base out_schema 
-        out_schema = type('Response', (resource.response_model, BaseOutSchema), {})
-
-        class ResponseSchema(BaseResponseSchema):
-            data: List[out_schema] 
-        
-        class PostResponseSchema(BaseSchema):
-            data: List[out_schema] 
-
+        out_schema = create_model(
+            f'out_schema_{resource.name}',
+            id = (ObjectID, ...),
+            updated = (datetime, ...),
+            created = (datetime, ...),
+            __base__=resource.response_model,
+            )
+        ResponseModel = create_model(
+            f'ResponseSchema_{resource.name}', 
+            data = (List[out_schema], ...), 
+            __base__=BaseResponseSchema,
+            )
+        PostResponseModel = create_model(
+            f'PostResponseSchema_{resource.name}', 
+            data = (List[out_schema], ...), 
+            __base__=BaseSchema
+            )
+       
         for method in resource.resource_methods:
             if method == 'POST':
                 router.add_api_route(
                     f"/{resource.name}", 
                     endpoint=collections_endpoint_factory(resource, method), 
-                    response_model=PostResponseSchema, 
+                    response_model=PostResponseModel, 
                     response_model_exclude_unset=True, 
                     methods=[method],
                 ) 
@@ -56,7 +68,7 @@ class Fasteve(FastAPI):
                 router.add_api_route(
                     f"/{resource.name}", 
                     endpoint=collections_endpoint_factory(resource, method), 
-                    response_model=ResponseSchema, 
+                    response_model=ResponseModel, 
                     response_model_exclude_unset=True, 
                     methods=[method],
                 )

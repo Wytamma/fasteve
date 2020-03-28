@@ -23,9 +23,9 @@ class MongoClient(Client):
                 str(config.MONGODB_URI)
             )
             # check that the client is connected
-            print(client.server_info())
+            client.server_info()
         except:
-            HTTPException(500, e)
+            HTTPException(500)
         db.client = client
 
     def close():
@@ -116,7 +116,6 @@ class Mongo(DataLayer):
     def init_app(self) -> None:
         self.mongo_prefix = None
     
-    @log
     async def find(self, resource: Resource, args: dict):
         """ Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
