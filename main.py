@@ -5,7 +5,7 @@ from pydantic import EmailStr, SecretStr, Field
 class People(BaseSchema):
     name: str
 
-people = Resource(schema=People, resource_methods=['GET', 'POST'])
+people = Resource(schema=People, resource_methods=['GET', 'POST'], item_name='person')
 
 class Ducks(BaseSchema):
     name: str

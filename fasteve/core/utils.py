@@ -32,5 +32,5 @@ class ObjectID(str):
     @classmethod
     def validate(cls, v):
         if not ObjectId.is_valid(str(v)):
-            return ValueError(f"Not a valid ObjectId: {v}")
+            raise ValueError(f"Not a valid ObjectId: {v}")
         return ObjectId(str(v))

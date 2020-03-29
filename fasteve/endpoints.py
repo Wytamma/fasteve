@@ -1,13 +1,13 @@
 from starlette.requests import Request
-from .methods import get, post
+from .methods import get, post, getitem
 from fastapi import HTTPException
 from .core import config
-from fastapi import Depends
+from fastapi import Depends, Path
 from typing import List, Type, Callable, Union
 from pydantic import BaseModel
 from .schema import BaseSchema
 from .resource import Resource
-from .core.utils import log
+from .core.utils import log, ObjectID
 
 @log
 async def process_collections_request(request: Request):
@@ -19,7 +19,6 @@ async def process_collections_request(request: Request):
         raise HTTPException(405)
     try:
         res = await methods[request.method](request)
-        print(res)
         return res
     except Exception as e:
         raise e
@@ -53,6 +52,29 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             request.payload = [schema.dict() for schema in in_schema] if type(in_schema) == list else in_schema.dict()
             return await process_collections_request(request)
     return collections_endpoint
+
+async def process_item_request(request: Request):
+    methods = {
+        'GET': getitem, 
+        }
+    if request.method not in methods:
+        raise HTTPException(405)
+    try:
+        res = await methods[request.method](request)
+        return res
+    except Exception as e:
+        raise e
+
+def item_endpoint_factory(resource: Resource, method: str, **kwargs) -> Callable:
+    """Dynamically create item endpoint"""
+    async def item_endpoint(
+            request: Request,
+            _id: ObjectID = Path(..., alias=f'{resource.item_name}_id')
+        ) -> dict:
+        request.item_id = _id
+        print(vars(request))
+        return await process_item_request(request)
+    return item_endpoint
 
 def home_endpoint(request: Request) -> dict:
     response = {}

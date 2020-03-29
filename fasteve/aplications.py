@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from .middleware.resource import ResourceMiddleware
-from .endpoints import collections_endpoint_factory, home_endpoint
+from .endpoints import collections_endpoint_factory, home_endpoint, item_endpoint_factory
 from .core import config
 from .schema import BaseResponseSchema, BaseSchema
 from typing import List
@@ -72,6 +72,15 @@ class Fasteve(FastAPI):
                     response_model_exclude_unset=True, 
                     methods=[method],
                 )
+        for method in resource.item_methods:
+            router.add_api_route(
+                f"/{resource.name}/{{{resource.item_name + '_id'}}}", 
+                endpoint=item_endpoint_factory(resource, method), 
+                response_model=ResponseModel,
+                response_model_exclude_unset=True, 
+                methods=[method],
+            )
+        
         self.include_router(
             router,
             tags=[resource.name],

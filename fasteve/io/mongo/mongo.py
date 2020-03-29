@@ -139,7 +139,18 @@ class Mongo(DataLayer):
             raise e
         count = await collection.count_documents(q)
         return items, count
-    
+
+
+    async def find_one(self, resource: Resource, item_id):
+        """ 
+        """
+        collection = await self.motor(resource)
+        try:
+            item = await collection.find_one({'_id':item_id})
+        except Exception as e:
+            raise e
+        return item
+
     @log
     async def insert(self, resource: Resource, payload):
         """ 

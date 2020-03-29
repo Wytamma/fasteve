@@ -3,6 +3,7 @@ from fasteve.io.mongo import Mongo
 from fasteve.core.utils import log
 from fasteve.core import config
 from math import ceil
+from fastapi import HTTPException
 
 @log
 async def get(request: Request) -> dict:
@@ -37,7 +38,7 @@ async def get(request: Request) -> dict:
             "parent": {"href": "/", "title": "home"},
 
         } #_pagination_links(resource, req, count)
-        if count > 0: 
+        if count > args['limit']: 
             response['links']["next"] = {
                 "href": f"{request['path']}?page={page + 1}{max_results}",
                 "title": "next page"
@@ -49,5 +50,14 @@ async def get(request: Request) -> dict:
     return response
 
 
-def getitem() -> dict:
-    return {}
+async def getitem(request: Request) -> dict:
+    try:
+        item = await request.app.data.find_one(request.state.resource, request.item_id)
+    except Exception as e:
+        raise e
+    if not item:
+        raise HTTPException(404)
+    response = {}
+
+    response['data'] = [item]
+    return response
