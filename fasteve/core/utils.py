@@ -1,16 +1,19 @@
 from functools import wraps
 from bson import ObjectId
 
+
 def log(func):
     """
     A decorator that wraps the passed in function and logs 
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
-        arugemnts = ', '.join([str(arg) for arg in args])
-        keywords = ', '.join([f'{k}={str(v)}' for k,v in kwargs.items()])
-        #print(f"LOG: {func.__name__}({arugemnts}, {keywords})")
+        ", ".join([str(arg) for arg in args])
+        keywords = ", ".join([f"{k}={str(v)}" for k, v in kwargs.items()])
+        # print(f"LOG: {func.__name__}({arugemnts}, {keywords})")
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -21,8 +24,10 @@ def str_to_date(string):
     """
     return datetime.strptime(string, config.DATE_FORMAT) if string else None
 
+
 def parse_request(request):
     pass
+
 
 class ObjectID(str):
     @classmethod

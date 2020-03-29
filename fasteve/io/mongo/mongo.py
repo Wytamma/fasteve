@@ -1,17 +1,19 @@
-from fasteve.io.base import DataLayer, ConnectionException, BaseJSONEncoder, Client
+from fasteve.io.base import BaseJSONEncoder, Client, DataLayer
 from fasteve.core import config
 from fasteve.core.utils import str_to_date
-from fastapi import FastAPI, HTTPException
-import asyncio
+from fastapi import HTTPException
 from fasteve.resource import Resource
 from pymongo.collection import Collection
 from motor.motor_asyncio import AsyncIOMotorClient
 from fasteve.core.utils import log
 
+
 class DataBase:
     client: AsyncIOMotorClient = None
 
+
 db = DataBase()
+
 
 class MongoClient(Client):
     async def get_database() -> AsyncIOMotorClient:
@@ -19,9 +21,7 @@ class MongoClient(Client):
 
     def connect() -> None:
         try:
-            client = AsyncIOMotorClient(
-                str(config.MONGODB_URI)
-            )
+            client = AsyncIOMotorClient(str(config.MONGODB_URI))
             # check that the client is connected
             client.server_info()
         except:
@@ -62,6 +62,7 @@ class MongoJSONEncoder(BaseJSONEncoder):
             return str(obj)
         # delegate rendering to base class method
         return super(MongoJSONEncoder, self).default(obj)
+
 
 class Mongo(DataLayer):
     """ MongoDB data access layer for Eve REST API.
@@ -113,9 +114,10 @@ class Mongo(DataLayer):
         + ["$bitsAllClear", "$bitsAllSet", "$bitsAnyClear", "$bitsAnySet"]
         + ["$center", "$expr"]
     )
+
     def init_app(self) -> None:
         self.mongo_prefix = None
-    
+
     async def find(self, resource: Resource, args: dict):
         """ Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
@@ -125,28 +127,27 @@ class Mongo(DataLayer):
             ?where=name=="john doe"
         :param resource: Resource object.
         """
-        # precess query 
+        # precess query
         q = {}
         collection = await self.motor(resource)
         items = []
         # Perform find and iterate results
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
-            async for row in collection.find(q, skip=args['skip'], limit=args['limit']):
-                #row['id'] = row['_id']
+            async for row in collection.find(q, skip=args["skip"], limit=args["limit"]):
+                # row['id'] = row['_id']
                 items.append(row)
         except Exception as e:
             raise e
         count = await collection.count_documents(q)
         return items, count
 
-
     async def find_one(self, resource: Resource, item_id):
         """ 
         """
         collection = await self.motor(resource)
         try:
-            item = await collection.find_one({'_id':item_id})
+            item = await collection.find_one({"_id": item_id})
         except Exception as e:
             raise e
         return item
@@ -155,39 +156,39 @@ class Mongo(DataLayer):
     async def insert(self, resource: Resource, payload):
         """ 
         """
-        # precess query 
+        # precess query
         collection = await self.motor(resource)
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
             result = await collection.insert_one(payload)
         except Exception as e:
             raise e
-        payload['id'] = result.inserted_id
+        payload["id"] = result.inserted_id
         return [payload]
 
     async def insert_many(self, resource: Resource, payload):
         """ 
         """
-        # precess query 
+        # precess query
         collection = await self.motor(resource)
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
-            result = await collection.insert_many(payload)
+            await collection.insert_many(payload)
         except Exception as e:
             raise e
-        #for (item, id) in zip(payload, result.inserted_ids):
+        # for (item, id) in zip(payload, result.inserted_ids):
         #    item.update({'id':id})
         print(payload)
         return payload
 
     async def motor(self, resource: str) -> Collection:
-        # maybe it would be better to use inject db with 
+        # maybe it would be better to use inject db with
         # Depends(get_database) at the path operation function?
-        # By better I mean more FastAPI-ish. 
-        # However, then I have to pass the db all the way down to the 
+        # By better I mean more FastAPI-ish.
+        # However, then I have to pass the db all the way down to the
         # datalayer...
         try:
-            db = await MongoClient.get_database() 
+            db = await MongoClient.get_database()
         except Exception as e:
             HTTPException(500, e)
         return db[config.MONGODB_DATABASE][resource.name]
@@ -218,6 +219,7 @@ def _convert_sort_request_to_dict(self, re):
             abort(400, description=debug_error_message(str(e)))
     return client_sort
 
+
 def _convert_where_request_to_dict(self, req):
     """ Converts the contents of a `ParsedRequest`'s `where` property to
     a dict
@@ -236,8 +238,6 @@ def _convert_where_request_to_dict(self, req):
             except ParseError:
                 abort(
                     400,
-                    description=debug_error_message(
-                        "Unable to parse `where` clause"
-                    ),
+                    description=debug_error_message("Unable to parse `where` clause"),
                 )
     return query

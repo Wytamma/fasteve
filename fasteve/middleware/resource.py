@@ -14,9 +14,12 @@ class ResourceMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         resource = None
-        if request.scope['path'] != '/':
+        if request.scope["path"] != "/":
             # Use pattern matching to find resource
-            route = request.scope['path'][1:].split('/')[0]
-            resource = next((resource for resource in self.resources if resource.name == route), None)
+            route = request.scope["path"][1:].split("/")[0]
+            resource = next(
+                (resource for resource in self.resources if resource.name == route),
+                None,
+            )
         request.state.resource = resource
         return await call_next(request)

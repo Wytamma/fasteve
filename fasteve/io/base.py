@@ -53,6 +53,7 @@ class ConnectionException(Exception):
             msg += "Driver exception: %s" % repr(self.driver_exception)
         return msg
 
+
 class Client:
     """ Database client where you connect to the database
     """
@@ -65,7 +66,6 @@ class Client:
 
     def close():
         raise NotImplementedError
-
 
 
 class DataLayer:
@@ -89,7 +89,7 @@ class DataLayer:
     # Subclasses should provide their own specialized encoder (see
     # eve.io.mongo.MongoJSONEncoder).
     json_encoder_class = BaseJSONEncoder
-    
+
     def __init__(self, app):
         """ Implements extension pattern.
         """

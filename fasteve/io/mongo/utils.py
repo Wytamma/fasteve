@@ -1,5 +1,3 @@
-
-
 def get_db_client():
     """
     Gets instance of MongoDB client for you to make DB queries.

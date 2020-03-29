@@ -3,18 +3,19 @@ from datetime import datetime
 import hashlib
 from json import dumps
 
+
 def document_etag(value, ignore_fields=None):
     """ Computes and returns a valid ETag for the input value.
     """
     h = hashlib.sha1()
-    h.update(
-        dumps(value_, sort_keys=True).encode("utf-8")
-    )
+    h.update(dumps(value_, sort_keys=True).encode("utf-8"))
     return h.hexdigest()
+
 
 class ParsedRequest:
     """ This class, by means of its attributes, describes a client request.
     """
+
     # `where` value of the query string (?where). Defaults to None.
     where: str = None
 
@@ -79,7 +80,7 @@ def parse_request(request: Request, resource: Resource) -> ParsedRequest:
 
     r.show_deleted = config.SHOW_DELETED_PARAM in args
 
-    max_results_default = config.PAGINATION_DEFAULT if resource.pagination else 0
+    config.PAGINATION_DEFAULT if resource.pagination else 0
     r.max_results = int(float(args[config.QUERY_MAX_RESULTS]))
 
     if resource.pagination:
@@ -113,6 +114,7 @@ def parse_request(request: Request, resource: Resource) -> ParsedRequest:
         r.if_match = etag_parse("If-Match")
 
     return r
+
 
 def weak_date(date):
     """ Returns a RFC-1123 string corresponding to a datetime value plus
