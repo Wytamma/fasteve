@@ -49,17 +49,17 @@ Features (TODO)
 ---------------
 * Emphasis on REST
 * Full range of CRUD operations
-* Customizable resource endpoints
+* Customizable resource endpoints ✅
 * Customizable, multiple item endpoints
 * Filtering and Sorting
-* Pagination
-* HATEOAS
+* Pagination ✅
+* HATEOAS ✅
 * JSON and XML Rendering
 * Conditional Requests
 * Data Integrity and Concurrency Control
-* Bulk Inserts
-* Data Validation
-* Extensible Data Validation
+* Bulk Inserts ✅
+* Data Validation ✅
+* Extensible Data Validation ✅
 * Resource-level Cache Control
 * API Versioning
 * Document Versioning
@@ -81,7 +81,7 @@ Features (TODO)
 * Operations Log
 * MongoDB Aggregation Framework
 * MongoDB and SQL Support
-* Powered by FastAPI
+* Powered by FastAPI ✅
 
 License
 -------
