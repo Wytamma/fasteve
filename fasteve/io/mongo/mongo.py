@@ -25,7 +25,7 @@ class MongoClient(Client):
             # check that the client is connected
             client.server_info()
         except:
-            HTTPException(500)
+            raise HTTPException(500)
         db.client = client
 
     def close():
@@ -133,10 +133,10 @@ class Mongo(DataLayer):
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
             async for row in collection.find(q, skip=args['skip'], limit=args['limit']):
-                row['id'] = row['_id']
+                #row['id'] = row['_id']
                 items.append(row)
         except Exception as e:
-            HTTPException(500, e)
+            raise e
         count = await collection.count_documents(q)
         return items, count
     
@@ -150,9 +150,24 @@ class Mongo(DataLayer):
         try:
             result = await collection.insert_one(payload)
         except Exception as e:
-            HTTPException(500, e)
+            raise e
         payload['id'] = result.inserted_id
         return [payload]
+
+    async def insert_many(self, resource: Resource, payload):
+        """ 
+        """
+        # precess query 
+        collection = await self.motor(resource)
+        # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
+        try:
+            result = await collection.insert_many(payload)
+        except Exception as e:
+            raise e
+        #for (item, id) in zip(payload, result.inserted_ids):
+        #    item.update({'id':id})
+        print(payload)
+        return payload
 
     async def motor(self, resource: str) -> Collection:
         # maybe it would be better to use inject db with 

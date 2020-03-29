@@ -16,6 +16,7 @@ pytest-cov = "*"
 fastapi = "*"
 uvicorn = "*"
 motor = "*"
+email-validator = "*"
 
 [requires]
 python_version = "3.7"

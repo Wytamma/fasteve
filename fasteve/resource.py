@@ -15,6 +15,7 @@ class Resource:
     sorting: bool = True
     embedding: bool = True
     datasource: dict = None
+    bulk_inserts: bool = True
 
     def __post_init__(self):
         if not self.name:

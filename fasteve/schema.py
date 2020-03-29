@@ -16,6 +16,16 @@ class MetaModel(BaseModel):
     max_results: Optional[int]
     total: Optional[int]
 
-class BaseResponseSchema(BaseModel):
+class LinkModel(BaseModel):
+    href: str
+    title: str
+
+class LinksModel(BaseModel):
+    self: Optional[LinkModel]
+    parent: Optional[LinkModel]
+    next: Optional[LinkModel]
+    last: Optional[LinkModel]
+
+class BaseResponseSchema(BaseSchema):
     meta: Optional[MetaModel]
-    links: Optional[dict]
+    links: Optional[LinksModel]

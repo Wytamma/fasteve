@@ -8,7 +8,7 @@ from .resource import Resource
 from .io.mongo import Mongo, MongoClient
 from .core.utils import log, ObjectID
 from datetime import datetime
-from pydantic import BaseModel, create_model, BaseConfig
+from pydantic import BaseModel, create_model, BaseConfig, Field
 
 class Fasteve(FastAPI):
     def __init__(self, resources: List[Resource] = [], data = Mongo) -> None:
@@ -36,14 +36,14 @@ class Fasteve(FastAPI):
         # process resource_settings
         # add name to api
         router = APIRouter()
-
         out_schema = create_model(
             f'out_schema_{resource.name}',
-            id = (ObjectID, ...),
-            updated = (datetime, ...),
-            created = (datetime, ...),
+            id = (ObjectID, Field(..., alias='_id')),
+            updated = (datetime, Field(..., alias='_updated')),
+            created = (datetime, Field(..., alias='_created')),
             __base__=resource.response_model,
             )
+        
         ResponseModel = create_model(
             f'ResponseSchema_{resource.name}', 
             data = (List[out_schema], ...), 

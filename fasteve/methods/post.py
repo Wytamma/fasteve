@@ -2,19 +2,33 @@ from starlette.requests import Request
 from datetime import datetime
 from fasteve.core.utils import log
 from fasteve.core import config
+from fastapi import HTTPException
 
-@log
+def set_times(item, now):
+    item['_created'] = now
+    item['_updated'] = now
+
 async def post(request: Request) -> dict:
-    # TODO: bulk insert
     
     payload = request.payload
-    payload['created'] = datetime.now()
-    payload['updated'] = datetime.now()
-    
-    try:
-        documents = await request.app.data.insert(request.state.resource, payload)
-    except Exception as e:
-        print(e)
+    now = datetime.now()
+
+    if type(payload) == list:
+        for item in payload:
+            item['_created'] = now
+            item['_updated'] = now
+        try:
+            # TODO: bulk insert
+            documents = await request.app.data.insert_many(request.state.resource, payload)
+        except Exception as e:
+            raise e
+    else:
+        payload['_created'] = now
+        payload['_updated'] = now
+        try:
+            documents = await request.app.data.insert(request.state.resource, payload)
+        except Exception as e:
+            raise e
 
     response = {}
     

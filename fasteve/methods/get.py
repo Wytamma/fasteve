@@ -4,6 +4,7 @@ from fasteve.core.utils import log
 from fasteve.core import config
 from math import ceil
 
+@log
 async def get(request: Request) -> dict:
     
     query_params = dict(request.query_params)
@@ -12,11 +13,11 @@ async def get(request: Request) -> dict:
     args["limit"] = int(query_params['max_results']) if 'max_results' in query_params else 25
     page = int(query_params['page']) if 'page' in query_params else 1
     args["skip"] = (page - 1) * args["limit"] if page > 1 else 0
-    
+
     try:
         documents, count = await request.app.data.find(request.state.resource, args)
     except Exception as e:
-        print(e) # raise db error?
+        raise e
 
     response = {}
 
@@ -28,7 +29,7 @@ async def get(request: Request) -> dict:
             'max_results': args["limit"],
             'total': count
             } #_meta_links(req, count)
-
+            
     if config.HATEOAS:
         max_results = '&max_result=' + str(args['limit']) if args['limit'] != 25 else ''
         response['links'] = {
