@@ -66,7 +66,7 @@ class DataLayer:
     # serializers = {'objectid': ObjectId, 'datetime': serialize_date}
     serializers: dict = {}
 
-    def __init__(self, app) -> None: # type: ignore
+    def __init__(self, app) -> None:  # type: ignore
         """ Implements extension pattern.
         """
         if app is not None:

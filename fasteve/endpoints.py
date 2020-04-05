@@ -26,6 +26,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         # no in_schema validation on DELETE HEAD request
         async def collections_endpoint(request: Request,) -> dict:
             return await process_collections_request(request)
+
         return collections_endpoint
 
     elif method in ("GET", "HEAD"):
@@ -35,6 +36,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             request: Request, max_results: int = 25, page: int = 1,
         ) -> dict:
             return await process_collections_request(request)
+
         return get_endpoint
 
     else:
@@ -51,6 +53,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             )
             setattr(request, "payload", payload)
             return await process_collections_request(request)
+
         return post_endpoint
 
 
