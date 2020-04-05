@@ -66,10 +66,61 @@ def test_get_path(test_client, path, expected_status, expected_response):
 
 @pytest.mark.parametrize(
     "path,data,expected_status,expected_response",
-    [("/people", {"name": "Curie"}, 200, {"name": "Curie"}),],
+    [("/people", {"name": "Curie"}, 201, {"name": "Curie"}),],
 )
-def test_post_path(test_client, path, data, expected_status, expected_response):
-    response = test_client.post(path, json={"name": "Curie"})
+def test_insert(test_client, path, data, expected_status, expected_response):
+    response = test_client.post(path, json=data)
     assert response.status_code == expected_status
     # what's the correct response?
     assert response.json()["data"][0]["name"] == expected_response["name"]
+
+
+@pytest.mark.parametrize(
+    "path,data,expected_status,expected_response",
+    [
+        (
+            "/people",
+            [
+                {"name": "Marie Curie"},
+                {"name": "Rosalind Franklin"},
+                {"name": "Ada Lovelace"},
+            ],
+            201,
+            [
+                {"name": "Marie Curie"},
+                {"name": "Rosalind Franklin"},
+                {"name": "Ada Lovelace"},
+            ],
+        ),
+    ],
+)
+def test_bulk_insert(test_client, path, data, expected_status, expected_response):
+    response = test_client.post(path, json=data)
+    assert response.status_code == expected_status
+    result = [{"name": person["name"]} for person in response.json()["data"]]
+    assert data == result
+
+
+@pytest.mark.parametrize(
+    "path,data,expected_status", [("/people", {"name": "Curie"}, 200),],
+)
+def test_get_item(test_client, path, data, expected_status):
+    response = test_client.post(path, json=data)  # insert data for test
+    response.json()["data"][0]
+    item_id = response.json()["data"][0]["_id"]
+    response = test_client.get(path + f"/{item_id}")
+    assert response.status_code == expected_status
+    assert item_id == response.json()["data"][0]["_id"]
+
+
+@pytest.mark.parametrize(
+    "path,data,expected_status", [("/people", {"name": "Curie"}, 204),],
+)
+def test_delete_item(test_client, path, data, expected_status):
+    response = test_client.post(path, json=data)  # insert data for test
+    response.json()["data"][0]
+    item_id = response.json()["data"][0]["_id"]
+    response = test_client.delete(path + f"/{item_id}")
+    assert response.status_code == expected_status
+    response = test_client.get(path + f"/{item_id}")
+    assert response.status_code == 404
