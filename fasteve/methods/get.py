@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from fasteve.core.utils import log
+from fasteve.core.utils import log, ObjectID
 from fasteve.core import config
 from math import ceil
 from fastapi import HTTPException
@@ -51,9 +51,9 @@ async def get(request: Request) -> dict:
     return response
 
 
-async def getitem(request: Request) -> dict:
+async def getitem(request: Request, item_id: ObjectID) -> dict:
     try:
-        item = await request.app.data.find_one(request.state.resource, request.item_id)
+        item = await request.app.data.find_one(request.state.resource, item_id)
     except Exception as e:
         raise e
     if not item:

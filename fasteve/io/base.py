@@ -9,28 +9,9 @@
     :copyright: (c) 2017 by Nicola Iarocci.
     :license: BSD, see LICENSE for more details.
 """
-import datetime
-import json
-from copy import copy
-
-
-class BaseJSONEncoder(json.JSONEncoder):
-    """ Proprietary JSONEconder subclass used by the json render function.
-    This is needed to address the encoding of special values.
-    """
-
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            # convert any datetime to RFC 1123 format
-            return date_to_str(obj)
-        elif isinstance(obj, (datetime.time, datetime.date)):
-            # should not happen since the only supported date-like format
-            # supported at dmain schema level is 'datetime' .
-            return obj.isoformat()
-        elif isinstance(obj, set):
-            # convert set objects to encodable lists
-            return list(obj)
-        return json.JSONEncoder.default(self, obj)
+from typing import Optional, List, Tuple
+from fasteve.resource import Resource
+from fasteve.core.utils import ObjectID
 
 
 class ConnectionException(Exception):
@@ -41,10 +22,10 @@ class ConnectionException(Exception):
                              driver
     """
 
-    def __init__(self, driver_exception=None):
+    def __init__(self, driver_exception: Optional[str] = None):
         self.driver_exception = driver_exception
 
-    def __str__(self):
+    def __str__(self) -> str:
         msg = (
             "Error initializing the driver. Make sure the database server"
             "is running. "
@@ -58,13 +39,13 @@ class Client:
     """ Database client where you connect to the database
     """
 
-    async def get_database():
+    async def get_database(self) -> None:
         raise NotImplementedError
 
-    def connect():
+    def connect(self) -> None:
         raise NotImplementedError
 
-    def close():
+    def close(self) -> None:
         raise NotImplementedError
 
 
@@ -83,14 +64,9 @@ class DataLayer:
     # if custom serialize functions are needed, add them to the 'serializers'
     # dictionary, eg:
     # serializers = {'objectid': ObjectId, 'datetime': serialize_date}
-    serializers = {}
+    serializers: dict = {}
 
-    # json.JSONEncoder subclass for serializing data to json.
-    # Subclasses should provide their own specialized encoder (see
-    # eve.io.mongo.MongoJSONEncoder).
-    json_encoder_class = BaseJSONEncoder
-
-    def __init__(self, app):
+    def __init__(self, app) -> None: # type: ignore
         """ Implements extension pattern.
         """
         if app is not None:
@@ -99,19 +75,19 @@ class DataLayer:
         else:
             self.app = None
 
-    def init_app(self, app):
+    def init_app(self) -> None:
         """ This is where you want to initialize the db driver so it will be
         alive through the whole instance lifespan.
         """
         raise NotImplementedError
 
-    def connect(self):
+    def connect(self) -> None:
         raise NotImplementedError
 
-    def close(self):
+    def close(self) -> None:
         raise NotImplementedError
 
-    def find(self, resource, req, sub_resource_lookup, perform_count=True):
+    async def find(self, resource: Resource, args: dict) -> Tuple[List[dict], int]:
         """ Retrieves a set of documents (rows), matching the current request.
         Consumed when a request hits a collection/document endpoint
         (`/people/`).
@@ -133,7 +109,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def aggregate(self, resource, pipeline, options):
+    def aggregate(self, resource: Resource, pipeline: dict, options: dict) -> None:
         """ Perform an aggregation on the resource datasource and returns
         the result. Only implent this if the underlying db engine supports
         aggregation operations.
@@ -146,14 +122,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def find_one(
-        self,
-        resource,
-        req,
-        check_auth_value=True,
-        force_auth_field_projection=False,
-        **lookup
-    ):
+    async def find_one(self, resource: Resource, item_id: ObjectID,) -> dict:
         """ Retrieves a single document/record. Consumed when a request hits an
         item endpoint (`/people/id/`).
 
@@ -181,7 +150,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def find_one_raw(self, resource, **lookup):
+    def find_one_raw(self, resource: Resource, **lookup: dict) -> None:
         """ Retrieves a single, raw document. No projections or datasource
         filters are being applied here. Just looking up the document using the
         same lookup.
@@ -191,7 +160,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def find_list_of_ids(self, resource, ids, client_projection=None):
+    def find_list_of_ids(self, resource: Resource, ids: List) -> None:
         """ Retrieves a list of documents based on a list of primary keys
         The primary key is the field defined in `ID_FIELD`.
         This is a separate function to allow us to use per-database
@@ -206,7 +175,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def insert(self, resource, doc_or_docs):
+    def insert(self, resource: Resource, payload: dict) -> dict:
         """ Inserts a document into a resource collection/table.
 
         :param resource: resource being accessed. You should then use
@@ -217,7 +186,20 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def update(self, resource, id_, updates, original):
+    async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
+        """ Inserts a document into a resource collection/table.
+
+        :param resource: resource being accessed. You should then use
+                         the ``datasource`` helper function to retrieve both
+                         the actual datasource name.
+        :param doc_or_docs: json document or list of json documents to be added
+                            to the database.
+        """
+        raise NotImplementedError
+
+    def update(
+        self, resource: Resource, id_: str, updates: dict, original: dict
+    ) -> None:
         """ Updates a collection/table document/row.
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve
@@ -232,7 +214,9 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def replace(self, resource, id_, document, original):
+    def replace(
+        self, resource: Resource, id_: str, document: dict, original: dict
+    ) -> None:
         """ Replaces a collection/table document/row.
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve
@@ -246,7 +230,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def remove(self, resource, lookup):
+    def remove(self, resource: Resource, lookup: dict) -> None:
         """ Removes a document/row or an entire set of documents/rows from a
         database collection/table.
 
@@ -260,13 +244,13 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def combine_queries(self, query_a, query_b):
+    def combine_queries(self, query_a: dict, query_b: dict) -> None:
         """ Takes two db queries and applies db-specific syntax to produce
         the intersection.
         """
         raise NotImplementedError
 
-    def get_value_from_query(self, query, field_name):
+    def get_value_from_query(self, query: dict, field_name: str) -> None:
         """ Parses the given potentially-complex query and returns the value
         being assigned to the field given in `field_name`.
 
@@ -274,13 +258,13 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def query_contains_field(self, query, field_name):
+    def query_contains_field(self, query: dict, field_name: str) -> None:
         """ For the specified field name, does the query contain it?
         Used know whether we need to parse a compound query.
         """
         raise NotImplementedError
 
-    def is_empty(self, resource):
+    def is_empty(self, resource: Resource) -> None:
         """ Returns True if the collection is empty; False otherwise. While
         a user could rely on self.find() method to achieve the same result,
         this method can probably take advantage of specific datastore features
@@ -295,142 +279,3 @@ class DataLayer:
                          the actual datasource name.
         """
         raise NotImplementedError
-
-    def datasource(self, resource):
-        """ Returns a tuple with the actual name of the database
-        collection/table, base query and projection for the resource being
-        accessed.
-
-        :param resource: resource being accessed.
-        """
-        dsource = config.SOURCES[resource]
-
-        source = copy(dsource["source"])
-        filter_ = copy(dsource["filter"])
-        sort = copy(dsource["default_sort"])
-        projection = copy(dsource["projection"])
-
-        return source, filter_, projection, sort
-
-    def _datasource_ex(
-        self,
-        resource,
-        query=None,
-        client_projection=None,
-        client_sort=None,
-        check_auth_value=True,
-        force_auth_field_projection=False,
-    ):
-        """ Returns both db collection and exact query (base filter included)
-        to which an API resource refers to.
-        """
-        datasource, filter_, projection_, sort_ = self.datasource(resource)
-        if client_sort:
-            sort = client_sort
-        else:
-            # default sort is activated only if 'sorting' is enabled for the
-            # resource.
-            # TODO Consider raising a validation error on startup instead?
-            sort = sort_ if sort_ and config.DOMAIN[resource]["sorting"] else None
-
-        if filter_:
-            if query:
-                # Can't just dump one set of query operators into another
-                # e.g. if the dataset contains a custom datasource pattern
-                #   'filter': {'username': {'$exists': True}}
-                # and we try to filter on the field `username`,
-                # which is correct?
-
-                # Solution: call the db driver `combine_queries` operation
-                # which will apply db-specific syntax to produce the
-                # intersection of the two queries
-                query = self.combine_queries(query, filter_)
-            else:
-                query = filter_
-
-        fields = projection_
-        if client_projection:
-            if projection_:
-                # only allow fields which are included with the standard
-                # projection for the resource (avoid sniffing of private
-                # fields)
-                keep_fields = auto_fields(resource)
-                if 1 in client_projection.values():
-                    # inclusive projection - all values are 0 unless spec. or
-                    # auto
-                    fields = dict(
-                        [(field, field in keep_fields) for field in fields.keys()]
-                    )
-                for field, value in client_projection.items():
-                    field_base = field.split(".")[0]
-                    if field_base not in keep_fields and field_base in fields:
-                        fields[field] = value
-            else:
-                # there's no standard projection so we assume we are in a
-                # allow_unknown = True
-                fields = client_projection
-        # always drop exclusion projection, thus avoid mixed projection not
-        # supported by db driver
-        fields = dict([(field, value) for field, value in fields.items() if value])
-
-        # If the current HTTP method is in `public_methods` or
-        # `public_item_methods`, skip the `auth_field` check
-
-        # Only inject the auth_field in the query when not creating new
-        # documents.
-        if (
-            request
-            and request.method != "POST"
-            and (check_auth_value or force_auth_field_projection)
-        ):
-            auth_field, request_auth_value = auth_field_and_value(resource)
-            if auth_field:
-                if request_auth_value and check_auth_value:
-                    if query:
-                        # If the auth_field *replaces* a field in the query,
-                        # and the values are /different/, deny the request
-                        # This prevents the auth_field condition from
-                        # overwriting the query (issue #77)
-                        auth_field_in_query = self.app.data.query_contains_field(
-                            query, auth_field
-                        )
-                        if (
-                            auth_field_in_query
-                            and self.app.data.get_value_from_query(query, auth_field)
-                            != request_auth_value
-                        ):
-                            desc = "Incompatible User-Restricted Resource " "request."
-                            abort(
-                                401,
-                                desc,
-                                ("WWW-Authenticate", 'Basic realm="%s"' % __package__),
-                            )
-                        else:
-                            query = self.app.data.combine_queries(
-                                query, {auth_field: request_auth_value}
-                            )
-                    else:
-                        query = {auth_field: request_auth_value}
-                if force_auth_field_projection:
-                    fields[auth_field] = 1
-        return datasource, query, fields, sort
-
-    def _client_projection(self, req):
-        """ Returns a properly parsed client projection if available.
-
-        :param req: a :class:`ParsedRequest` instance.
-        """
-        client_projection = {}
-        if req and req.projection:
-            try:
-                client_projection = json.loads(req.projection)
-                if not isinstance(client_projection, dict):
-                    raise Exception("The projection parameter has to be a " "dict")
-            except:
-                abort(
-                    400,
-                    description=debug_error_message(
-                        "Unable to parse `projection` clause"
-                    ),
-                )
-        return client_projection

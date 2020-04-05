@@ -2,14 +2,9 @@ from starlette.requests import Request
 from datetime import datetime
 
 
-def set_times(item, now):
-    item["_created"] = now
-    item["_updated"] = now
-
-
 async def post(request: Request) -> dict:
 
-    payload = request.payload
+    payload = getattr(request, "payload")
     now = datetime.now()
 
     if type(payload) == list:
@@ -27,7 +22,8 @@ async def post(request: Request) -> dict:
         payload["_created"] = now
         payload["_updated"] = now
         try:
-            documents = await request.app.data.insert(request.state.resource, payload)
+            document = await request.app.data.insert(request.state.resource, payload)
+            documents = [document]
         except Exception as e:
             raise e
 

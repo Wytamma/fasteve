@@ -1,25 +1,28 @@
 from dataclasses import dataclass, field
-from typing import List, Type
+from typing import List, Type, Optional
 from pydantic import BaseModel
 
 
 @dataclass
 class Resource:
     schema: Type[BaseModel]
-    name: str = None  # set name to lowercase schema name by default
-    item_name: str = None  # set to name by default
-    resource_methods: List[str] = field(default_factory=lambda: ["GET"])
-    item_methods: List[str] = field(default_factory=lambda: ["GET"])
-    in_schema: Type[BaseModel] = None  # schema used as default
-    response_model: Type[BaseModel] = None  # schema used as default
+    name: Optional[str] = None  # type: ignore # set name to lowercase schema name by default
+    item_name: Optional[str] = None  # type: ignore # set to name by default
+    resource_methods: List[str] = field(default_factory=lambda: ["GET", "HEAD"])
+    item_methods: List[str] = field(default_factory=lambda: ["GET", "HEAD"])
+    in_schema: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
+    response_model: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
+    response_model_include: set = field(default_factory=lambda: set())
+    response_model_exclude: set = field(default_factory=lambda: set())
+
     allowed_filters: bool = True
     projection: bool = True
     sorting: bool = True
     embedding: bool = True
-    datasource: dict = None
+    datasource: Optional[dict] = None
     bulk_inserts: bool = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.name:
             self.name = self.schema.__name__.lower()
         if not self.item_name:
@@ -31,6 +34,3 @@ class Resource:
             self.in_schema = self.schema
         if not self.response_model:
             self.response_model = self.schema
-        if not self.resource_methods:
-            # TODO: set with config?
-            self.resource_methods = ["GET", "HEAD"]

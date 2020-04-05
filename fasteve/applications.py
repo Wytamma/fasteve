@@ -7,18 +7,22 @@ from .endpoints import (
 )
 from .core import config
 from .schema import BaseResponseSchema, BaseSchema
-from typing import List
+from typing import List, Type
+from types import ModuleType
 from .resource import Resource
 from .io.mongo import Mongo, MongoClient
+from .io.base import DataLayer
 from .core.utils import log, ObjectID
 from datetime import datetime
 from pydantic import Field, create_model
 
 
 class Fasteve(FastAPI):
-    def __init__(self, resources: List[Resource] = [], data=Mongo) -> None:
+    def __init__(
+        self, resources: List[Resource] = [], data: Type[DataLayer] = Mongo
+    ) -> None:
 
-        super().__init__()  # Instialise FastAPI super class
+        super().__init__()  # Initialise FastAPI super class
 
         # set defaults
         # validate user settings
@@ -36,7 +40,7 @@ class Fasteve(FastAPI):
             "shutdown", MongoClient.close
         )  # this can't be in the application layer i.e. needs to come from data layer
 
-        self.data = data(self)  # eve pattern
+        self.data = data(app=self)  # eve pattern
 
         for resource in self.resources:
             self.register_resource(resource)
@@ -56,12 +60,12 @@ class Fasteve(FastAPI):
 
         ResponseModel = create_model(
             f"ResponseSchema_{resource.name}",
-            data=(List[out_schema], ...),
+            data=(List[out_schema], ...),  # type: ignore
             __base__=BaseResponseSchema,
         )
         PostResponseModel = create_model(
             f"PostResponseSchema_{resource.name}",
-            data=(List[out_schema], ...),
+            data=(List[out_schema], ...),  # type: ignore
             __base__=BaseSchema,
         )
 
@@ -73,6 +77,14 @@ class Fasteve(FastAPI):
                     response_model=PostResponseModel,
                     response_model_exclude_unset=True,
                     methods=[method],
+                    status_code=201,
+                )
+            if method == "DELETE":
+                router.add_api_route(
+                    f"/{resource.name}",
+                    endpoint=collections_endpoint_factory(resource, method),
+                    methods=[method],
+                    status_code=204,
                 )
             else:
                 router.add_api_route(
@@ -84,7 +96,7 @@ class Fasteve(FastAPI):
                 )
         for method in resource.item_methods:
             router.add_api_route(
-                f"/{resource.name}/{{{resource.item_name + '_id'}}}",
+                f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
                 endpoint=item_endpoint_factory(resource, method),
                 response_model=ResponseModel,
                 response_model_exclude_unset=True,
@@ -92,7 +104,7 @@ class Fasteve(FastAPI):
             )
 
         self.include_router(
-            router, tags=[resource.name],
+            router, tags=[str(resource.name)],
         )
 
     def _register_home_endpoint(self) -> None:
@@ -104,5 +116,5 @@ class Fasteve(FastAPI):
         # therfore I can use request.app.resources
         self.add_middleware(ResourceMiddleware, resources=self.resources)
 
-    def _validate_config(self, config) -> None:
+    def _validate_config(self, config: ModuleType) -> ModuleType:
         return config

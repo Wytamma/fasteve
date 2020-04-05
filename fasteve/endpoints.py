@@ -9,8 +9,8 @@ from .core.utils import log, ObjectID
 
 
 @log
-async def process_collections_request(request: Request):
-    methods = {"GET": get, "POST": post}
+async def process_collections_request(request: Request) -> dict:
+    methods: dict = {"GET": get, "POST": post}
     if request.method not in methods:
         raise HTTPException(405)
     try:
@@ -21,59 +21,60 @@ async def process_collections_request(request: Request):
 
 
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
-    """Dynamically create collection endpoint with or without schema"""
-    if method in ("DELETE", "HEAD"):
+    """Dynamically create collection endpoints"""
+    if method == "DELETE":
         # no in_schema validation on DELETE HEAD request
         async def collections_endpoint(request: Request,) -> dict:
             return await process_collections_request(request)
+        return collections_endpoint
 
-    elif method == "GET":
+    elif method in ("GET", "HEAD"):
         # no in_schema validation on GET request
         # query prams
-        async def collections_endpoint(
+        async def get_endpoint(
             request: Request, max_results: int = 25, page: int = 1,
         ) -> dict:
             return await process_collections_request(request)
+        return get_endpoint
 
     else:
         if resource.bulk_inserts:
-            in_schema = Union[List[resource.in_schema], resource.in_schema]
+            in_schema = Union[List[resource.in_schema], resource.in_schema]  # type: ignore
         else:
-            in_schema = resource.in_schema
+            in_schema = resource.in_schema  # type: ignore
 
-        async def collections_endpoint(request: Request, in_schema: in_schema) -> dict:
-            request.payload = (
-                [schema.dict() for schema in in_schema]
+        async def post_endpoint(request: Request, in_schema: in_schema) -> dict:
+            payload = (
+                [dict(schema) for schema in in_schema]
                 if type(in_schema) == list
-                else in_schema.dict()
+                else dict(in_schema)
             )
+            setattr(request, "payload", payload)
             return await process_collections_request(request)
+        return post_endpoint
 
-    return collections_endpoint
 
-
-async def process_item_request(request: Request):
+async def process_item_request(request: Request, item_id: ObjectID) -> dict:
     methods = {
         "GET": getitem,
     }
     if request.method not in methods:
         raise HTTPException(405)
     try:
-        res = await methods[request.method](request)
+        res = await methods[request.method](request, item_id)
         return res
     except Exception as e:
         raise e
 
 
-def item_endpoint_factory(resource: Resource, method: str, **kwargs) -> Callable:
+def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create item endpoint"""
 
     async def item_endpoint(
-        request: Request, _id: ObjectID = Path(..., alias=f"{resource.item_name}_id")
+        request: Request,
+        item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
     ) -> dict:
-        request.item_id = _id
-        print(vars(request))
-        return await process_item_request(request)
+        return await process_item_request(request, item_id)
 
     return item_endpoint
 
