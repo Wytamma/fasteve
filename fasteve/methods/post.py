@@ -32,7 +32,3 @@ async def post(request: Request) -> dict:
     response["data"] = documents
 
     return response
-
-
-def getitem() -> dict:
-    return {}

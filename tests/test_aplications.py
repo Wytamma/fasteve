@@ -9,7 +9,12 @@ class People(BaseSchema):
     name: str
 
 
-people = Resource(name="people", schema=People, resource_methods=["GET", "POST"])
+people = Resource(
+    name="people",
+    schema=People,
+    resource_methods=["GET", "POST", "DELETE"],
+    item_methods=["GET", "DELETE"],
+)
 
 resources = [people]
 
@@ -111,6 +116,17 @@ def test_get_item(test_client, path, data, expected_status):
     response = test_client.get(path + f"/{item_id}")
     assert response.status_code == expected_status
     assert item_id == response.json()["data"][0]["_id"]
+
+
+@pytest.mark.parametrize(
+    "path,data,expected_status", [("/people", {"name": "Curie"}, 204),],
+)
+def test_delete_path(test_client, path, data, expected_status):
+    _ = test_client.post(path, json=data)  # insert data for test
+    response = test_client.delete(path)
+    assert response.status_code == expected_status
+    response = test_client.get(path)
+    assert len(response.json()["data"]) == 0
 
 
 @pytest.mark.parametrize(

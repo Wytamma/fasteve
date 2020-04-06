@@ -13,7 +13,7 @@ class Ducks(BaseSchema):
     fav_food: str
     owner_id: Optional[ObjectID]
 
-ducks = Resource(schema=Ducks, resource_methods=['GET', 'POST'])
+ducks = Resource(schema=Ducks, resource_methods=['GET', 'POST', 'DELETE'])
 
 class AccountsOut(BaseSchema):
     name: str

@@ -230,7 +230,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def remove(self, resource: Resource, lookup: dict) -> None:
+    async def remove(self, resource: Resource) -> None:
         """ Removes a document/row or an entire set of documents/rows from a
         database collection/table.
 

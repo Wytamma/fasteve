@@ -66,7 +66,7 @@ class Fasteve(FastAPI):
         PostResponseModel = create_model(
             f"PostResponseSchema_{resource.name}",
             data=(List[out_schema], ...),  # type: ignore
-            __base__=BaseSchema,
+            __base__=BaseSchema,  # No meta or links
         )
 
         for method in resource.resource_methods:
@@ -79,7 +79,7 @@ class Fasteve(FastAPI):
                     methods=[method],
                     status_code=201,
                 )
-            if method == "DELETE":
+            elif method == "DELETE":
                 router.add_api_route(
                     f"/{resource.name}",
                     endpoint=collections_endpoint_factory(resource, method),
@@ -95,13 +95,21 @@ class Fasteve(FastAPI):
                     methods=[method],
                 )
         for method in resource.item_methods:
-            router.add_api_route(
-                f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
-                endpoint=item_endpoint_factory(resource, method),
-                response_model=ResponseModel,
-                response_model_exclude_unset=True,
-                methods=[method],
-            )
+            if method == "DELETE":
+                router.add_api_route(
+                    f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
+                    endpoint=item_endpoint_factory(resource, method),
+                    methods=[method],
+                    status_code=204,
+                )
+            else:
+                router.add_api_route(
+                    f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
+                    endpoint=item_endpoint_factory(resource, method),
+                    response_model=ResponseModel,
+                    response_model_exclude_unset=True,
+                    methods=[method],
+                )
 
         self.include_router(
             router, tags=[str(resource.name)],

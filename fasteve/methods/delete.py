@@ -1,15 +1,16 @@
 from starlette.requests import Request
-from fastapi import HTTPException
+from fasteve.core.utils import ObjectID
 
 
-async def delete(request: Request) -> dict:
+async def delete(request: Request) -> None:
     try:
-        item = await request.app.data.delete(request.state.resource)
+        await request.app.data.remove(request.state.resource)
     except Exception as e:
         raise e
-    if not item:
-        raise HTTPException(404)
-    response = {}
 
-    response["data"] = [item]
-    return response
+
+async def delete_item(request: Request, item_id: ObjectID) -> None:
+    try:
+        await request.app.data.remove_item(request.state.resource, item_id)
+    except Exception as e:
+        raise e

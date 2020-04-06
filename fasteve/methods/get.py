@@ -51,7 +51,7 @@ async def get(request: Request) -> dict:
     return response
 
 
-async def getitem(request: Request, item_id: ObjectID) -> dict:
+async def get_item(request: Request, item_id: ObjectID) -> dict:
     try:
         item = await request.app.data.find_one(request.state.resource, item_id)
     except Exception as e:

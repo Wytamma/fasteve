@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from .methods import get, post, getitem
+from .methods import get, post, get_item, delete, delete_item
 from fastapi import HTTPException
 from .core import config
 from fastapi import Path
@@ -10,7 +10,7 @@ from .core.utils import log, ObjectID
 
 @log
 async def process_collections_request(request: Request) -> dict:
-    methods: dict = {"GET": get, "POST": post}
+    methods: dict = {"GET": get, "POST": post, "DELETE": delete}
     if request.method not in methods:
         raise HTTPException(405)
     try:
@@ -22,14 +22,7 @@ async def process_collections_request(request: Request) -> dict:
 
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create collection endpoints"""
-    if method == "DELETE":
-        # no in_schema validation on DELETE HEAD request
-        async def collections_endpoint(request: Request,) -> dict:
-            return await process_collections_request(request)
-
-        return collections_endpoint
-
-    elif method in ("GET", "HEAD"):
+    if method in ("GET", "HEAD"):
         # no in_schema validation on GET request
         # query prams
         async def get_endpoint(
@@ -39,7 +32,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
         return get_endpoint
 
-    else:
+    elif method == "POST":
         if resource.bulk_inserts:
             in_schema = Union[List[resource.in_schema], resource.in_schema]  # type: ignore
         else:
@@ -56,15 +49,23 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
         return post_endpoint
 
+    elif method == "DELETE":
+        # no in_schema validation on DELETE HEAD request
+        async def delete_endpoint(request: Request,) -> dict:
+            return await process_collections_request(request)
+
+        return delete_endpoint
+
+    else:
+        raise Exception(f'"{method}" is an invalid HTTP method')
+
 
 async def process_item_request(request: Request, item_id: ObjectID) -> dict:
-    methods = {
-        "GET": getitem,
-    }
+    methods = {"GET": get_item, "DELETE": delete_item}
     if request.method not in methods:
         raise HTTPException(405)
     try:
-        res = await methods[request.method](request, item_id)
+        res = await methods[request.method](request, item_id)  # type: ignore # this is giving a mypy error because of mixed return types
         return res
     except Exception as e:
         raise e
@@ -73,11 +74,19 @@ async def process_item_request(request: Request, item_id: ObjectID) -> dict:
 def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create item endpoint"""
 
-    async def item_endpoint(
-        request: Request,
-        item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
-    ) -> dict:
-        return await process_item_request(request, item_id)
+    if method in ("GET", "HEAD", "DELETE"):
+        # no in_schema validation on GET request
+        # query prams
+        async def item_endpoint(
+            request: Request,
+            item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+        ) -> dict:
+            return await process_item_request(request, item_id)
+
+        return item_endpoint
+
+    else:
+        raise Exception(f'"{method}" is an invalid HTTP method')
 
     return item_endpoint
 

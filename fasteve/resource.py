@@ -8,8 +8,8 @@ class Resource:
     schema: Type[BaseModel]
     name: Optional[str] = None  # type: ignore # set name to lowercase schema name by default
     item_name: Optional[str] = None  # type: ignore # set to name by default
-    resource_methods: List[str] = field(default_factory=lambda: ["GET", "HEAD"])
-    item_methods: List[str] = field(default_factory=lambda: ["GET", "HEAD"])
+    resource_methods: List[str] = field(default_factory=lambda: ["GET"])
+    item_methods: List[str] = field(default_factory=lambda: ["GET"])
     in_schema: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
     response_model: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
     response_model_include: set = field(default_factory=lambda: set())

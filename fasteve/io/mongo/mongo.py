@@ -42,6 +42,18 @@ class Mongo(DataLayer):
     def init_app(self) -> None:
         self.mongo_prefix = None
 
+    async def motor(self, resource: Resource) -> Collection:
+        # maybe it would be better to use inject db with
+        # Depends(get_database) at the path operation function?
+        # By better I mean more FastAPI-ish.
+        # However, then I have to pass the db all the way down to the
+        # datalayer...
+        try:
+            db = await MongoClient.get_database()
+        except Exception as e:
+            HTTPException(500, e)
+        return db[config.MONGODB_DATABASE][resource.name]
+
     async def find(
         self, resource: Resource, args: dict, q: dict = {}
     ) -> Tuple[List[dict], int]:
@@ -81,9 +93,7 @@ class Mongo(DataLayer):
     async def insert(self, resource: Resource, payload: dict) -> dict:
         """ 
         """
-        # precess query
         collection = await self.motor(resource)
-        # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
             await collection.insert_one(payload)
         except Exception as e:
@@ -93,23 +103,29 @@ class Mongo(DataLayer):
     async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
         """ 
         """
-        # precess query
         collection = await self.motor(resource)
-        # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
             await collection.insert_many(payload)
         except Exception as e:
             raise e
         return payload
 
-    async def motor(self, resource: Resource) -> Collection:
-        # maybe it would be better to use inject db with
-        # Depends(get_database) at the path operation function?
-        # By better I mean more FastAPI-ish.
-        # However, then I have to pass the db all the way down to the
-        # datalayer...
+    async def remove(self, resource: Resource) -> None:
+        """ Removes an entire set of documents from a
+        database collection.
+        """
+        collection = await self.motor(resource)
         try:
-            db = await MongoClient.get_database()
+            await collection.delete_many({})
         except Exception as e:
-            HTTPException(500, e)
-        return db[config.MONGODB_DATABASE][resource.name]
+            raise e
+
+    async def remove_item(self, resource: Resource, item_id: ObjectID) -> None:
+        """ Removes an entire set of documents from a
+        database collection.
+        """
+        collection = await self.motor(resource)
+        try:
+            result = await collection.delete_one({"_id": item_id})
+        except Exception as e:
+            raise e
