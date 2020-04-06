@@ -1,6 +1,8 @@
 from fasteve import Fasteve, BaseSchema, Resource, ObjectID
+from fasteve.utils import repeat_every
 from typing import Optional
 from pydantic import EmailStr, SecretStr, Field
+from datetime import date
 
 class People(BaseSchema):
     name: str
@@ -15,24 +17,19 @@ class Ducks(BaseSchema):
 
 ducks = Resource(schema=Ducks, resource_methods=['GET', 'POST', 'DELETE'])
 
-class AccountsOut(BaseSchema):
-    name: str
-    email: EmailStr
+class Countries(BaseSchema):
+    date: date
+    confirmed: int
+    deaths: int
+    recovered: int
 
-class AccountsIn(AccountsOut):
-    password: str = Field(
-        ...,
-        min_length=8
-    )
+countries = Resource(schema=Countries, resource_methods=['GET', 'POST', 'DELETE'], item_name='country')
 
-accounts = Resource(
-    name='accounts',
-    schema=AccountsIn, 
-    resource_methods=['GET', 'POST'], 
-    response_model=AccountsOut,
-    bulk_inserts = False
-    )
-
-resources = [people, ducks, accounts]
+resources = [people, ducks, countries]
 
 app = Fasteve(resources=resources)
+
+@app.on_event("startup")
+@repeat_every(seconds=5)
+def load_data_from_github() -> None:
+    print('Loading data from github --> Fasteve')
