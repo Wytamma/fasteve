@@ -15,7 +15,6 @@ data = Resource(schema=Data, resource_methods=['GET', 'POST', 'DELETE'], item_na
 
 resources = [data]
 
-"""
 class Leader(BaseSchema):
   name: str
   age: int 
@@ -37,19 +36,6 @@ countries = Resource(
   )
 
 resources = [countries, leader, data]
-"""
-"""
-GET /countries/<_id:name>/data
-
-  {
-    "date": "2020-04-07T13:40:02.761000",
-    "confirmed": 0,
-    "deaths": 0,
-    "recovered": 0,
-    "country_id": _id
-  }
-
-"""
 
 app = Fasteve(resources=resources, cors_origins=["*"])
 
