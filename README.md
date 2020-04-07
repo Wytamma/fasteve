@@ -36,7 +36,7 @@ $ curl -i http://localhost:8000/people
 HTTP/1.1 200
 ...
 {
-    "data": [],
+    config.DATA: [],
     "meta": {"max_results": 25, "total": 0, "page": 1},
     "links": {
         "self": {"href": "/people", "title": "people"},
@@ -60,6 +60,7 @@ Features (TODO)
 * Bulk Inserts ✅
 * Data Validation ✅
 * Extensible Data Validation ✅
+* Unique Fields
 * Resource-level Cache Control
 * API Versioning
 * Document Versioning
@@ -73,7 +74,8 @@ Features (TODO)
 * Embedded Resource Serialization
 * Event Hooks
 * Rate Limiting
-* Custom ID Fields
+* Custom ID Fields ✅
+* Alternative ID Fields ✅
 * File Storage
 * GeoJSON
 * Internal Resources

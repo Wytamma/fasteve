@@ -47,14 +47,14 @@ def test_client(test_user):
 @pytest.mark.parametrize(
     "path,expected_status,expected_response",
     [
-        ("/", 200, {"links": {"child": [{"href": "/people", "title": "people"}]}}),
+        ("/", 200, {"_links": {"child": [{"href": "/people", "title": "people"}]}}),
         (
             "/people",
             200,
             {
-                "data": [],
-                "meta": {"max_results": 25, "total": 0, "page": 1},
-                "links": {
+                app.config.DATA: [],
+                "_meta": {"max_results": 25, "total": 0, "page": 1},
+                "_links": {
                     "self": {"href": "/people", "title": "people"},
                     "parent": {"href": "/", "title": "home"},
                 },
@@ -77,7 +77,7 @@ def test_insert(test_client, path, data, expected_status, expected_response):
     response = test_client.post(path, json=data)
     assert response.status_code == expected_status
     # what's the correct response?
-    assert response.json()["data"][0]["name"] == expected_response["name"]
+    assert response.json()[app.config.DATA][0]["name"] == expected_response["name"]
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ def test_insert(test_client, path, data, expected_status, expected_response):
 def test_bulk_insert(test_client, path, data, expected_status, expected_response):
     response = test_client.post(path, json=data)
     assert response.status_code == expected_status
-    result = [{"name": person["name"]} for person in response.json()["data"]]
+    result = [{"name": person["name"]} for person in response.json()[app.config.DATA]]
     assert data == result
 
 
@@ -111,11 +111,11 @@ def test_bulk_insert(test_client, path, data, expected_status, expected_response
 )
 def test_get_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
-    response.json()["data"][0]
-    item_id = response.json()["data"][0]["_id"]
+    response.json()[app.config.DATA][0]
+    item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.get(path + f"/{item_id}")
     assert response.status_code == expected_status
-    assert item_id == response.json()["data"][0]["_id"]
+    assert item_id == response.json()[app.config.DATA][0]["_id"]
 
 
 @pytest.mark.parametrize(
@@ -126,7 +126,7 @@ def test_delete_path(test_client, path, data, expected_status):
     response = test_client.delete(path)
     assert response.status_code == expected_status
     response = test_client.get(path)
-    assert len(response.json()["data"]) == 0
+    assert len(response.json()[app.config.DATA]) == 0
 
 
 @pytest.mark.parametrize(
@@ -134,8 +134,8 @@ def test_delete_path(test_client, path, data, expected_status):
 )
 def test_delete_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
-    response.json()["data"][0]
-    item_id = response.json()["data"][0]["_id"]
+    response.json()[app.config.DATA][0]
+    item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.delete(path + f"/{item_id}")
     assert response.status_code == expected_status
     response = test_client.get(path + f"/{item_id}")

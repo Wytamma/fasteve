@@ -122,7 +122,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    async def find_one(self, resource: Resource, item_id: ObjectID,) -> dict:
+    async def find_one(self, resource: Resource, lookup: dict) -> dict:
         """ Retrieves a single document/record. Consumed when a request hits an
         item endpoint (`/people/id/`).
 

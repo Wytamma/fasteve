@@ -1,5 +1,6 @@
 from starlette.requests import Request
 from datetime import datetime
+from ..core import config
 
 
 async def post(request: Request) -> dict:
@@ -29,6 +30,6 @@ async def post(request: Request) -> dict:
 
     response = {}
 
-    response["data"] = documents
+    response[config.DATA] = documents
 
     return response

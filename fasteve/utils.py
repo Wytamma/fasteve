@@ -5,7 +5,7 @@ import logging
 from asyncio import ensure_future
 from functools import wraps
 from traceback import format_exception
-from typing import Any, Callable, Coroutine, Optional, Union, List
+from typing import Any, Callable, Coroutine, Optional, Union, List, NewType
 
 from starlette.concurrency import run_in_threadpool
 
@@ -16,10 +16,13 @@ def document_etag(value: dict, ignore_fields: List[str] = None) -> str:
     h.update(dumps(value, sort_keys=True).encode("utf-8"))
     return h.hexdigest()
 
+def Unique(tp: type) -> type:
+  Unique = NewType('Fasteve_Unique', tp)
+  return Unique
+
 NoArgsNoReturnFuncT = Callable[[], None]
 NoArgsNoReturnAsyncFuncT = Callable[[], Coroutine[Any, Any, None]]
 NoArgsNoReturnDecorator = Callable[[Union[NoArgsNoReturnFuncT, NoArgsNoReturnAsyncFuncT]], NoArgsNoReturnAsyncFuncT]
-
 
 def repeat_every(
     *,

@@ -3,6 +3,7 @@ from fasteve.core.utils import log, ObjectID
 from fasteve.core import config
 from math import ceil
 from fastapi import HTTPException
+from typing import Union
 
 
 @log
@@ -24,10 +25,10 @@ async def get(request: Request) -> dict:
 
     response = {}
 
-    response["data"] = documents
+    response[config.DATA] = documents
 
     if config.PAGINATION:
-        response["meta"] = {
+        response[config.META] = {
             "page": page,
             "max_results": args["limit"],
             "total": count,
@@ -35,30 +36,34 @@ async def get(request: Request) -> dict:
 
     if config.HATEOAS:
         max_results = "&max_result=" + str(args["limit"]) if args["limit"] != 25 else ""
-        response["links"] = {
+        response[config.LINKS] = {
             "self": {"href": request["path"], "title": request.state.resource.name},
             "parent": {"href": "/", "title": "home"},
         }  # _pagination_links(resource, req, count)
         if count > args["limit"]:
-            response["links"]["next"] = {
+            response[config.LINKS]["next"] = {
                 "href": f"{request['path']}?page={page + 1}{max_results}",
                 "title": "next page",
             }
-            response["links"]["last"] = {
+            response[config.LINKS]["last"] = {
                 "href": f"{request['path']}?page={ceil(count / args['limit'])}{max_results}",
                 "title": "last page",
             }
     return response
 
 
-async def get_item(request: Request, item_id: ObjectID) -> dict:
+async def get_item(request: Request, item_id: Union[ObjectID, str]) -> dict:
     try:
-        item = await request.app.data.find_one(request.state.resource, item_id)
+        lookup = {"_id":ObjectID.validate(item_id)}
+    except ValueError:
+        lookup = {request.state.resource.alt_id:item_id}
+    try:
+        item = await request.app.data.find_one(request.state.resource, lookup)
     except Exception as e:
         raise e
     if not item:
         raise HTTPException(404)
     response = {}
 
-    response["data"] = [item]
+    response[config.DATA] = [item]
     return response

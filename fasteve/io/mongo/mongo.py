@@ -79,12 +79,12 @@ class Mongo(DataLayer):
         count = await collection.count_documents(q)
         return items, count
 
-    async def find_one(self, resource: Resource, item_id: ObjectID) -> dict:
+    async def find_one(self, resource: Resource, lookup: dict) -> dict:
         """ 
         """
         collection = await self.motor(resource)
         try:
-            item = await collection.find_one({"_id": item_id})
+            item = await collection.find_one(lookup)
         except Exception as e:
             raise e
         return item

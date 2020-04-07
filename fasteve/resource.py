@@ -12,8 +12,9 @@ class Resource:
     item_methods: List[str] = field(default_factory=lambda: ["GET"])
     in_schema: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
     response_model: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
-    response_model_include: set = field(default_factory=lambda: set())
-    response_model_exclude: set = field(default_factory=lambda: set())
+    response_model_include: set = field(default_factory=lambda: set()) # TODO
+    response_model_exclude: set = field(default_factory=lambda: set()) # TODO
+    alt_id: Optional[str] = None
 
     allowed_filters: bool = True
     projection: bool = True

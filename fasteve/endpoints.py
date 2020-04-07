@@ -6,6 +6,20 @@ from fastapi import Path
 from typing import Callable, List, Union
 from .resource import Resource
 from .core.utils import log, ObjectID
+from pymongo.errors import DuplicateKeyError, BulkWriteError
+
+def render_pymongo_error(details):
+    key = list(details["keyValue"].keys())[0]
+    val = details["keyValue"][key]
+    msg = {"loc": [
+                "body",
+                "in_schema",
+                key
+            ],
+            "msg": f"value '{val}' is not unique",
+            "type": "value_error.not_unique"
+        }
+    return msg
 
 
 @log
@@ -16,6 +30,12 @@ async def process_collections_request(request: Request) -> dict:
     try:
         res = await methods[request.method](request)
         return res
+    except DuplicateKeyError as e:
+        msg = render_pymongo_error(e.details)
+        raise HTTPException(422, msg)
+    except BulkWriteError as e:
+        msg = render_pymongo_error(e.details['writeErrors'][0])
+        raise HTTPException(422, msg)
     except Exception as e:
         raise e
 
@@ -40,9 +60,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
         async def post_endpoint(request: Request, in_schema: in_schema) -> dict:
             payload = (
-                [dict(schema) for schema in in_schema]
+                [schema.dict() for schema in in_schema]
                 if type(in_schema) == list
-                else dict(in_schema)
+                else in_schema.dict()
             )
             setattr(request, "payload", payload)
             return await process_collections_request(request)
@@ -60,7 +80,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         raise Exception(f'"{method}" is an invalid HTTP method')
 
 
-async def process_item_request(request: Request, item_id: ObjectID) -> dict:
+async def process_item_request(request: Request, item_id: Union[ObjectID, str]) -> dict:
     methods = {"GET": get_item, "DELETE": delete_item}
     if request.method not in methods:
         raise HTTPException(405)
@@ -76,15 +96,21 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
     if method in ("GET", "HEAD", "DELETE"):
         # no in_schema validation on GET request
-        # query prams
-        async def item_endpoint(
-            request: Request,
-            item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
-        ) -> dict:
-            return await process_item_request(request, item_id)
-
-        return item_endpoint
-
+        if resource.alt_id:
+            async def item_endpoint_with_alt_id(
+                request: Request,
+                item_id: Union[ObjectID, str] = Path(..., alias=f"{resource.item_name}_id"),
+            ) -> dict:
+                return await process_item_request(request, item_id)
+            return item_endpoint_with_alt_id
+        else:
+            async def item_endpoint(
+                request: Request,
+                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+            ) -> dict:
+                return await process_item_request(request, item_id)
+            return item_endpoint
+    
     else:
         raise Exception(f'"{method}" is an invalid HTTP method')
 

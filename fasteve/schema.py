@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, ForwardRef
 from bson import ObjectId
 
 json_encoders = {ObjectId: lambda x: str(x)}
@@ -27,7 +27,13 @@ class LinksModel(BaseModel):
     next: Optional[LinkModel]
     last: Optional[LinkModel]
 
+class ItemLinksModel(BaseModel):
+    self: Optional[LinkModel]
+    parent: Optional[LinkModel]
 
 class BaseResponseSchema(BaseSchema):
-    meta: Optional[MetaModel]
-    links: Optional[LinksModel]
+    meta: Optional[MetaModel] = Field('MetaModel', alias="_meta", )
+    links: Optional[LinksModel] = Field('LinksModel', alias="_links")
+
+class ItemBaseResponseSchema(BaseSchema):
+    links: Optional[ItemLinksModel] = Field('ItemLinksModel', alias="_links")

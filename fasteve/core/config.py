@@ -7,13 +7,14 @@ config = Config(".env")
 INFO = config("INFO", cast=str, default="_info")
 API_VERSION = config("API_VERSION", cast=str, default="0.1")
 HATEOAS = config("HATEOAS", cast=bool, default=True)
-LINKS = config("LINKS", cast=str, default="links")
+LINKS = config("LINKS", cast=str, default="_links")
+META = config("META", cast=str, default="_meta")
+DATA = config("DATA", cast=str, default="_data")
 PAGINATION = config("PAGINATION", cast=bool, default=True)
 MONGODB_URI = config("MONGODB_URI", cast=str, default="mongodb://localhost:27017")
 MONGODB_DATABASE = config("MONGODB_DATABASE", cast=str, default="fasteve_db")
-MAX_CONNECTIONS_COUNT = config("MAX_CONNECTIONS_COUNT", cast=str, default="_links")
-MIN_CONNECTIONS_COUNT = config("MIN_CONNECTIONS_COUNT", cast=str, default="_links")
 CORS_ORIGINS = config("CORS_ORIGINS", cast=str, default=None)
+
 
 # default query parameters
 QUERY_WHERE = config("QUERY_WHERE", cast=str, default="where")
