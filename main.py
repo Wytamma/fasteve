@@ -13,8 +13,6 @@ class Data(BaseSchema):
 
 data = Resource(schema=Data, resource_methods=['GET', 'POST', 'DELETE'], item_name='datum')
 
-resources = [data]
-
 class Leader(BaseSchema):
   name: str
   age: int 
@@ -39,6 +37,6 @@ resources = [countries, leader, data]
 
 app = Fasteve(resources=resources, cors_origins=["*"])
 
-@app.repeat_every(seconds=5)
+@app.repeat_every(seconds=60 * 60 * 24)  # every day
 def load_data_from_github() -> None:
   print('Loading data from github --> Fasteve')
