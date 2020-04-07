@@ -11,7 +11,6 @@
 """
 from typing import Optional, List, Tuple
 from fasteve.resource import Resource
-from fasteve.core.utils import ObjectID
 
 
 class ConnectionException(Exception):

@@ -22,10 +22,10 @@ import logging
 
 class Fasteve(FastAPI):
     def __init__(
-        self, 
-        resources: List[Resource] = [], 
+        self,
+        resources: List[Resource] = [],
         data: Type[DataLayer] = Mongo,
-        cors_origins: List[str] = []
+        cors_origins: List[str] = [],
     ) -> None:
 
         super().__init__()  # Initialise FastAPI super class
@@ -34,7 +34,7 @@ class Fasteve(FastAPI):
         self.cors_origins = cors_origins
         # validate user settings
         self.resources = resources
-        
+
         self._validate_config(config)
         self.config = config
 
@@ -42,7 +42,7 @@ class Fasteve(FastAPI):
         self._register_CORS_middleware()
 
         self._register_home_endpoint()
-        
+
         # connect to db
         MongoClient.connect()
 
@@ -56,7 +56,6 @@ class Fasteve(FastAPI):
             self.register_resource(resource)
             loop = asyncio.get_event_loop()
             loop.create_task(self.create_mongo_index(resource))
-            
 
     @log
     def register_resource(self, resource: Resource) -> None:
@@ -64,7 +63,7 @@ class Fasteve(FastAPI):
         # add name to api
         router = APIRouter()
 
-        # check response model for references 
+        # check response model for references
 
         response_model = create_model(
             f"out_schema_{resource.name}",
@@ -143,10 +142,10 @@ class Fasteve(FastAPI):
             name = schema.__fields__[field].name
             if not is_new_type(schema.__fields__[field].type_):
                 continue
-            if type_.__name__ == 'Fasteve_Unique':
+            if type_.__name__ == "Fasteve_Unique":
                 collection = await self.data.motor(resource)
                 res = await collection.create_index(name, unique=True)
-    
+
     def repeat_every(
         self,
         *,
@@ -155,17 +154,20 @@ class Fasteve(FastAPI):
         logger: Optional[logging.Logger] = None,
         raise_exceptions: bool = False,
         max_repetitions: Optional[int] = None,
-        ):
+    ):
+        """https://stackoverflow.com/a/52518284/5209891"""
         dec2 = repeat(
-                seconds=seconds,
-                wait_first=wait_first,
-                logger=logger,
-                raise_exceptions=raise_exceptions,
-                max_repetitions=max_repetitions
-            )
+            seconds=seconds,
+            wait_first=wait_first,
+            logger=logger,
+            raise_exceptions=raise_exceptions,
+            max_repetitions=max_repetitions,
+        )
         dec1 = self.on_event("startup")
+
         def merged_decorator(func):
             return dec1(dec2(func))
+
         return merged_decorator
 
     def _register_home_endpoint(self) -> None:
@@ -176,7 +178,7 @@ class Fasteve(FastAPI):
         # app is already passed to every request!
         # therfore I can use request.app.resources
         self.add_middleware(ResourceMiddleware, resources=self.resources)
-    
+
     def _register_CORS_middleware(self) -> None:
         """Set global Cross-Origin Resource Sharing"""
         if self.cors_origins:

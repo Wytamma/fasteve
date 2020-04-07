@@ -54,9 +54,9 @@ async def get(request: Request) -> dict:
 
 async def get_item(request: Request, item_id: Union[ObjectID, str]) -> dict:
     try:
-        lookup = {"_id":ObjectID.validate(item_id)}
+        lookup = {"_id": ObjectID.validate(item_id)}
     except ValueError:
-        lookup = {request.state.resource.alt_id:item_id}
+        lookup = {request.state.resource.alt_id: item_id}
     try:
         item = await request.app.data.find_one(request.state.resource, lookup)
     except Exception as e:

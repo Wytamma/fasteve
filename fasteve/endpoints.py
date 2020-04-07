@@ -8,17 +8,15 @@ from .resource import Resource
 from .core.utils import log, ObjectID
 from pymongo.errors import DuplicateKeyError, BulkWriteError
 
+
 def render_pymongo_error(details):
     key = list(details["keyValue"].keys())[0]
     val = details["keyValue"][key]
-    msg = {"loc": [
-                "body",
-                "in_schema",
-                key
-            ],
-            "msg": f"value '{val}' is not unique",
-            "type": "value_error.not_unique"
-        }
+    msg = {
+        "loc": ["body", "in_schema", key],
+        "msg": f"value '{val}' is not unique",
+        "type": "value_error.not_unique",
+    }
     return msg
 
 
@@ -34,7 +32,7 @@ async def process_collections_request(request: Request) -> dict:
         msg = render_pymongo_error(e.details)
         raise HTTPException(422, msg)
     except BulkWriteError as e:
-        msg = render_pymongo_error(e.details['writeErrors'][0])
+        msg = render_pymongo_error(e.details["writeErrors"][0])
         raise HTTPException(422, msg)
     except Exception as e:
         raise e
@@ -97,20 +95,26 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     if method in ("GET", "HEAD", "DELETE"):
         # no in_schema validation on GET request
         if resource.alt_id:
+
             async def item_endpoint_with_alt_id(
                 request: Request,
-                item_id: Union[ObjectID, str] = Path(..., alias=f"{resource.item_name}_id"),
+                item_id: Union[ObjectID, str] = Path(
+                    ..., alias=f"{resource.item_name}_id"
+                ),
             ) -> dict:
                 return await process_item_request(request, item_id)
+
             return item_endpoint_with_alt_id
         else:
+
             async def item_endpoint(
                 request: Request,
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
             ) -> dict:
                 return await process_item_request(request, item_id)
+
             return item_endpoint
-    
+
     else:
         raise Exception(f'"{method}" is an invalid HTTP method')
 

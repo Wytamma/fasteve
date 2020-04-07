@@ -5,8 +5,9 @@ import logging
 from asyncio import ensure_future
 from functools import wraps
 from traceback import format_exception
-from typing import Any, Callable, Coroutine, Optional, Union, List, Generator, Type, NewType
+from typing import Any, Callable, Coroutine, Generator, NewType, Optional, Type, Union
 from starlette.concurrency import run_in_threadpool
+
 
 def log(func: Callable) -> Callable:
     """
@@ -34,17 +35,23 @@ class ObjectID(str):
             raise ValueError(f"Not a valid ObjectId: {v}")
         return ObjectId(str(v))
 
-test_type = NewType('test_type', str)
+
+test_type = NewType("test_type", str)
+
 
 def is_new_type(type_: Type[Any]) -> bool:
     """
     Check whether type_ was created using typing.NewType
     """
-    return isinstance(type_, test_type.__class__) and hasattr(type_, '__supertype__')  # type: ignore
+    return isinstance(type_, test_type.__class__) and hasattr(type_, "__supertype__")  # type: ignore
+
 
 NoArgsNoReturnFuncT = Callable[[], None]
 NoArgsNoReturnAsyncFuncT = Callable[[], Coroutine[Any, Any, None]]
-NoArgsNoReturnDecorator = Callable[[Union[NoArgsNoReturnFuncT, NoArgsNoReturnAsyncFuncT]], NoArgsNoReturnAsyncFuncT]
+NoArgsNoReturnDecorator = Callable[
+    [Union[NoArgsNoReturnFuncT, NoArgsNoReturnAsyncFuncT]], NoArgsNoReturnAsyncFuncT
+]
+
 
 def repeat_every(
     *,
@@ -77,7 +84,10 @@ def repeat_every(
     max_repetitions: Optional[int] (default None)
         The maximum number of times to call the repeated function. If `None`, the function is repeated forever.
     """
-    def decorator(func: Union[NoArgsNoReturnAsyncFuncT, NoArgsNoReturnFuncT]) -> NoArgsNoReturnAsyncFuncT:
+
+    def decorator(
+        func: Union[NoArgsNoReturnAsyncFuncT, NoArgsNoReturnFuncT]
+    ) -> NoArgsNoReturnAsyncFuncT:
         """
         Converts the decorated function into a repeated, periodically-called version of itself.
         """
@@ -87,6 +97,7 @@ def repeat_every(
         @wraps(func)
         async def wrapped() -> None:
             repetitions = 0
+
             async def loop() -> None:
                 nonlocal repetitions
                 if wait_first:
@@ -100,7 +111,9 @@ def repeat_every(
                         repetitions += 1
                     except Exception as exc:
                         if logger is not None:
-                            formatted_exception = "".join(format_exception(type(exc), exc, exc.__traceback__))
+                            formatted_exception = "".join(
+                                format_exception(type(exc), exc, exc.__traceback__)
+                            )
                             logger.error(formatted_exception)
                         if raise_exceptions:
                             raise exc
