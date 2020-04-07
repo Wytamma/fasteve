@@ -36,9 +36,9 @@ $ curl -i http://localhost:8000/people
 HTTP/1.1 200
 ...
 {
-    config.DATA: [],
-    "meta": {"max_results": 25, "total": 0, "page": 1},
-    "links": {
+    "_data": [],
+    "_meta": {"max_results": 25, "total": 0, "page": 1},
+    "_links": {
         "self": {"href": "/people", "title": "people"},
         "parent": {"href": "/", "title": "home"},
     },
