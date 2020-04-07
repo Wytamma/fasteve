@@ -60,7 +60,7 @@ Features (TODO)
 * Bulk Inserts ✅
 * Data Validation ✅
 * Extensible Data Validation ✅
-* Unique Fields
+* Unique Fields ✅
 * Resource-level Cache Control
 * API Versioning
 * Document Versioning
