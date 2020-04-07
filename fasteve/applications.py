@@ -8,15 +8,16 @@ from .endpoints import (
 )
 from .core import config
 from .schema import BaseResponseSchema, BaseSchema, ItemBaseResponseSchema
-from typing import List, Type
+from typing import List, Type, Optional
 from types import ModuleType
 from .resource import Resource
 from .io.mongo import Mongo, MongoClient
 from .io.base import DataLayer
-from .core.utils import log, ObjectID, is_new_type
+from .core.utils import log, ObjectID, is_new_type, repeat_every as repeat
 from datetime import datetime
 from pydantic import Field, create_model
 import asyncio
+import logging
 
 
 class Fasteve(FastAPI):
@@ -145,7 +146,27 @@ class Fasteve(FastAPI):
             if type_.__name__ == 'Fasteve_Unique':
                 collection = await self.data.motor(resource)
                 res = await collection.create_index(name, unique=True)
-
+    
+    def repeat_every(
+        self,
+        *,
+        seconds: float,
+        wait_first: bool = False,
+        logger: Optional[logging.Logger] = None,
+        raise_exceptions: bool = False,
+        max_repetitions: Optional[int] = None,
+        ):
+        dec2 = repeat(
+                seconds=seconds,
+                wait_first=wait_first,
+                logger=logger,
+                raise_exceptions=raise_exceptions,
+                max_repetitions=max_repetitions
+            )
+        dec1 = self.on_event("startup")
+        def merged_decorator(func):
+            return dec1(dec2(func))
+        return merged_decorator
 
     def _register_home_endpoint(self) -> None:
         self.add_api_route(f"/", home_endpoint)
