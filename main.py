@@ -17,6 +17,25 @@ class Ducks(BaseSchema):
 
 ducks = Resource(schema=Ducks, resource_methods=['GET', 'POST', 'DELETE'])
 
+
+"""
+GET /countries/{thailand:_id}
+[
+    {
+      "date": "2020-1-22",
+      "confirmed": 2,
+      "deaths": 0,
+      "recovered": 0
+    },
+    {
+      "date": "2020-1-23",
+      "confirmed": 3,
+      "deaths": 0,
+      "recovered": 0
+    },
+    ...
+  ],
+"""
 class Countries(BaseSchema):
     date: date
     confirmed: int
@@ -27,7 +46,7 @@ countries = Resource(schema=Countries, resource_methods=['GET', 'POST', 'DELETE'
 
 resources = [people, ducks, countries]
 
-app = Fasteve(resources=resources)
+app = Fasteve(resources=resources, cors_origins=["*"])
 
 @app.on_event("startup")
 @repeat_every(seconds=5)

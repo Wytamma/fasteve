@@ -13,6 +13,7 @@ MONGODB_URI = config("MONGODB_URI", cast=str, default="mongodb://localhost:27017
 MONGODB_DATABASE = config("MONGODB_DATABASE", cast=str, default="fasteve_db")
 MAX_CONNECTIONS_COUNT = config("MAX_CONNECTIONS_COUNT", cast=str, default="_links")
 MIN_CONNECTIONS_COUNT = config("MIN_CONNECTIONS_COUNT", cast=str, default="_links")
+CORS_ORIGINS = config("CORS_ORIGINS", cast=str, default=None)
 
 # default query parameters
 QUERY_WHERE = config("QUERY_WHERE", cast=str, default="where")

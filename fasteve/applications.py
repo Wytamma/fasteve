@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from .middleware.resource import ResourceMiddleware
+from .middleware.cors import CORSMiddleware
 from .endpoints import (
     collections_endpoint_factory,
     home_endpoint,
@@ -19,17 +20,22 @@ from pydantic import Field, create_model
 
 class Fasteve(FastAPI):
     def __init__(
-        self, resources: List[Resource] = [], data: Type[DataLayer] = Mongo
+        self, 
+        resources: List[Resource] = [], 
+        data: Type[DataLayer] = Mongo,
+        cors_origins: List[str] = []
     ) -> None:
 
         super().__init__()  # Initialise FastAPI super class
 
         # set defaults
+        self.cors_origins = cors_origins
         # validate user settings
         self.resources = resources
         self.config = self._validate_config(config)
 
         self._register_resource_middleware()
+        self._register_CORS_middleware()
 
         self._register_home_endpoint()
 
@@ -110,7 +116,7 @@ class Fasteve(FastAPI):
                     response_model_exclude_unset=True,
                     methods=[method],
                 )
-
+        # TODO: api versioning
         self.include_router(
             router, tags=[str(resource.name)],
         )
@@ -123,6 +129,30 @@ class Fasteve(FastAPI):
         # app is already passed to every request!
         # therfore I can use request.app.resources
         self.add_middleware(ResourceMiddleware, resources=self.resources)
+    
+    def _register_CORS_middleware(self) -> None:
+        """Set global Cross-Origin Resource Sharing"""
+        if self.cors_origins:
+            # app level cors
+            origins_raw = self.cors_origins
+        elif self.config.CORS_ORIGINS:
+            # global cors
+            origins_raw = self.config.CORS_ORIGINS.split(",")
+        # CORS
+        origins = []
+        # Set all CORS enabled origins
+        if self.config.CORS_ORIGINS:
+            for origin in origins_raw:
+                use_origin = origin.strip()
+                origins.append(use_origin)
+            self.add_middleware(
+                CORSMiddleware,
+                allow_origins=origins,
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
 
     def _validate_config(self, config: ModuleType) -> ModuleType:
+        # raise errors if config is invalid
         return config
