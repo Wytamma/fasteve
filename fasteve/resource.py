@@ -1,20 +1,20 @@
 from dataclasses import dataclass, field
-from typing import List, Type, Optional
+from typing import List, Optional, Type
 from pydantic import BaseModel
 
 
 @dataclass
 class Resource:
-    schema: Type[BaseModel]
+    schema: Type[BaseModel]  # in the db
     name: Optional[str] = None  # type: ignore # set name to lowercase schema name by default
     item_name: Optional[str] = None  # type: ignore # set to name by default
     resource_methods: List[str] = field(default_factory=lambda: ["GET"])
     item_methods: List[str] = field(default_factory=lambda: ["GET"])
-    in_schema: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
     response_model: Optional[Type[BaseModel]] = None  # type: ignore # schema used as default
     response_model_include: set = field(default_factory=lambda: set())  # TODO
     response_model_exclude: set = field(default_factory=lambda: set())  # TODO
     alt_id: Optional[str] = None
+    sub_resources: Optional[List["SubResource"]] = None
 
     allowed_filters: bool = True
     projection: bool = True
@@ -31,7 +31,5 @@ class Resource:
                 self.item_name = self.name[:-1]
             else:
                 self.item_name = self.name
-        if not self.in_schema:
-            self.in_schema = self.schema
         if not self.response_model:
             self.response_model = self.schema

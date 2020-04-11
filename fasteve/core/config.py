@@ -14,7 +14,7 @@ PAGINATION = config("PAGINATION", cast=bool, default=True)
 MONGODB_URI = config("MONGODB_URI", cast=str, default="mongodb://localhost:27017")
 MONGODB_DATABASE = config("MONGODB_DATABASE", cast=str, default="fasteve_db")
 CORS_ORIGINS = config("CORS_ORIGINS", cast=str, default=None)
-
+CONNECTION_TIMEOUT = config("CONNECTION_TIMEOUT", cast=int, default=10000)
 
 # default query parameters
 QUERY_WHERE = config("QUERY_WHERE", cast=str, default="where")

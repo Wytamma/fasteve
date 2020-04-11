@@ -1,6 +1,9 @@
 import hashlib
 from json import dumps
-from typing import List, NewType
+from typing import List, NewType, Optional
+from .resource import Resource
+from dataclasses import dataclass
+from pydantic import Field
 
 
 def document_etag(value: dict, ignore_fields: List[str] = None) -> str:
@@ -11,14 +14,24 @@ def document_etag(value: dict, ignore_fields: List[str] = None) -> str:
     return h.hexdigest()
 
 
-def Unique(tp: type) -> type:
+def Unique(tp: type) -> NewType:
     Unique = NewType("Fasteve_Unique", tp)
     return Unique
 
 
-def DataRelation():
-    pass
+def DataRelation(resource, optional=True):
+    # the optional flag is dumb. figure out a better way to do it.
+    # basically i just want to use Option[] on the type
+    #
+    if optional:
+        Relation = Field(None, data_relation=resource)
+    else:
+        Relation = Field(..., data_relation=resource)
+    return Relation
 
 
-def SubResource():
-    pass
+@dataclass
+class SubResource:
+    resource: Resource
+    id_field: str
+    name: Optional[str] = None

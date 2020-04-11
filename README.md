@@ -71,7 +71,7 @@ Features (TODO)
 * Default Values ✅
 * Predefined Database Filters
 * Projections
-* Embedded Resource Serialization
+* Embedded Resource Serialization ✅
 * Event Hooks
 * Rate Limiting
 * Custom ID Fields ✅

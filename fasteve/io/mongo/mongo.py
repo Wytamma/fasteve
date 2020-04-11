@@ -23,10 +23,11 @@ class MongoClient(Client):
     @classmethod
     def connect(cls) -> None:
         try:
-            client = AsyncIOMotorClient(str(config.MONGODB_URI))
-            # check that the client is connected
-            client.server_info()
-        except:
+            client = AsyncIOMotorClient(
+                str(config.MONGODB_URI),
+                serverSelectionTimeoutMS=config.CONNECTION_TIMEOUT,
+            )
+        except Exception:
             raise ConnectionException
         db.client = client
 
@@ -49,13 +50,42 @@ class Mongo(DataLayer):
         # However, then I have to pass the db all the way down to the
         # datalayer...
         try:
-            db = await MongoClient.get_database()
+            client = await MongoClient.get_database()
         except Exception as e:
             HTTPException(500, e)
-        return db[config.MONGODB_DATABASE][resource.name]
+        return client[config.MONGODB_DATABASE][resource.name]
+
+    async def aggregate(
+        self,
+        resource: Resource,
+        pipline: List[dict] = [],
+        skip: int = 0,
+        limit: int = 0,
+    ) -> Tuple[List[dict], int]:
+        collection = await self.motor(resource)
+
+        paginated_results = []
+        paginated_results.append({"$skip": skip})
+        paginated_results.append({"$limit": limit})
+        facet_pipelines = {}
+        facet_pipelines["paginated_results"] = paginated_results
+        facet_pipelines["total_count"] = [{"$count": "count"}]
+        facet = {"$facet": facet_pipelines}
+        pipline.append(facet)
+        count = 0
+        try:
+            async for res in collection.aggregate(pipline):
+                print(res)
+                items = res["paginated_results"]
+                if res["total_count"]:
+                    # IndexError: list index out of range
+                    count = res["total_count"][0]["count"]
+        except Exception as e:
+            raise e
+        return items, count
 
     async def find(
-        self, resource: Resource, args: dict, q: dict = {}
+        self, resource: Resource, lookup: dict = {}, skip: int = 0, limit: int = 0
     ) -> Tuple[List[dict], int]:
         """ Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
@@ -71,12 +101,11 @@ class Mongo(DataLayer):
         # Perform find and iterate results
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
-            async for row in collection.find(q, skip=args["skip"], limit=args["limit"]):
-                # row['id'] = row['_id']
+            async for row in collection.find(lookup, skip=skip, limit=limit):
                 items.append(row)
         except Exception as e:
             raise e
-        count = await collection.count_documents(q)
+        count = await collection.count_documents(lookup)
         return items, count
 
     async def find_one(self, resource: Resource, lookup: dict) -> dict:

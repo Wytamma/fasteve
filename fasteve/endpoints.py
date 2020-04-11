@@ -13,7 +13,7 @@ def render_pymongo_error(details):
     key = list(details["keyValue"].keys())[0]
     val = details["keyValue"][key]
     msg = {
-        "loc": ["body", "in_schema", key],
+        "loc": ["body", "schema", key],
         "msg": f"value '{val}' is not unique",
         "type": "value_error.not_unique",
     }
@@ -41,10 +41,10 @@ async def process_collections_request(request: Request) -> dict:
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create collection endpoints"""
     if method in ("GET", "HEAD"):
-        # no in_schema validation on GET request
+        # no schema validation on GET request
         # query prams
         async def get_endpoint(
-            request: Request, max_results: int = 25, page: int = 1,
+            request: Request, max_results: int = 25, page: int = 1, embedded: str = "{}"
         ) -> dict:
             return await process_collections_request(request)
 
@@ -52,15 +52,15 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
     elif method == "POST":
         if resource.bulk_inserts:
-            in_schema = Union[List[resource.in_schema], resource.in_schema]  # type: ignore
+            schema = Union[List[resource.schema], resource.schema]  # type: ignore
         else:
-            in_schema = resource.in_schema  # type: ignore
+            schema = resource.schema  # type: ignore
 
-        async def post_endpoint(request: Request, in_schema: in_schema) -> dict:
+        async def post_endpoint(request: Request, schema: schema) -> dict:
             payload = (
-                [schema.dict() for schema in in_schema]
-                if type(in_schema) == list
-                else in_schema.dict()
+                [schema.dict() for schema in schema]
+                if type(schema) == list
+                else schema.dict()
             )
             setattr(request, "payload", payload)
             return await process_collections_request(request)
@@ -68,7 +68,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         return post_endpoint
 
     elif method == "DELETE":
-        # no in_schema validation on DELETE HEAD request
+        # no schema validation on DELETE HEAD request
         async def delete_endpoint(request: Request,) -> dict:
             return await process_collections_request(request)
 
@@ -93,7 +93,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create item endpoint"""
 
     if method in ("GET", "HEAD", "DELETE"):
-        # no in_schema validation on GET request
+        # no schema validation on GET request
         if resource.alt_id:
 
             async def item_endpoint_with_alt_id(

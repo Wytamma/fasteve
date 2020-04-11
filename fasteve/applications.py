@@ -8,7 +8,7 @@ from .endpoints import (
 )
 from .core import config
 from .schema import BaseResponseSchema, BaseSchema, ItemBaseResponseSchema
-from typing import List, Type, Optional
+from typing import List, Type, Optional, Union
 from types import ModuleType
 from .resource import Resource
 from .io.mongo import Mongo, MongoClient
@@ -53,48 +53,48 @@ class Fasteve(FastAPI):
         self.data = data(app=self)  # eve pattern
 
         for resource in self.resources:
+            # create indexes
+            self.create_mongo_index(resource)
+
+        for resource in self.resources:
+            # create endpoints
             self.register_resource(resource)
-            loop = asyncio.get_event_loop()
-            loop.create_task(self.create_mongo_index(resource))
 
     @log
     def register_resource(self, resource: Resource) -> None:
+        print(f"Registering Resource: {resource.name}")
         # process resource_settings
         # add name to api
         router = APIRouter()
 
-        # check response model for references
-
-        response_model = create_model(
-            f"out_schema_{resource.name}",
-            id=(ObjectID, Field(..., alias="_id")),
-            updated=(datetime, Field(..., alias="_updated")),
-            created=(datetime, Field(..., alias="_created")),
-            __base__=resource.response_model,
+        # check models for data relations
+        resource.schema = self._embed_data_relation(resource.schema)
+        resource.response_model = self._embed_data_relation(
+            resource.response_model, response=True
         )
 
-        ResponseModel = create_model(
+        response_model = self._prepare_response_model(
+            resource.response_model, resource.name
+        )
+
+        Response = create_model(
             f"ResponseSchema_{resource.name}",
             data=(List[response_model], Field(..., alias="_data")),  # type: ignore
             __base__=BaseResponseSchema,
         )
 
-        PostResponseModel = create_model(
+        PostResponse = create_model(
             f"PostResponseSchema_{resource.name}",
             data=(List[response_model], Field(..., alias="_data")),  # type: ignore
             __base__=BaseSchema,  # No meta or links
         )
-        ItemResponseModel = create_model(
-            f"ItemResponseSchema_{resource.name}",
-            data=(List[response_model], Field(..., alias="_data")),  # type: ignore
-            __base__=ItemBaseResponseSchema,
-        )
+
         for method in resource.resource_methods:
             if method == "POST":
                 router.add_api_route(
                     f"/{resource.name}",
                     endpoint=collections_endpoint_factory(resource, method),
-                    response_model=PostResponseModel,
+                    response_model=PostResponse,
                     response_model_exclude_unset=True,
                     methods=[method],
                     status_code=201,
@@ -110,10 +110,17 @@ class Fasteve(FastAPI):
                 router.add_api_route(
                     f"/{resource.name}",
                     endpoint=collections_endpoint_factory(resource, method),
-                    response_model=ResponseModel,
+                    response_model=Response,
                     response_model_exclude_unset=True,
                     methods=[method],
                 )
+
+        ItemResponse = create_model(
+            f"ItemResponseSchema_{resource.name}",
+            data=(List[response_model], Field(..., alias="_data")),  # type: ignore
+            __base__=ItemBaseResponseSchema,
+        )
+
         for method in resource.item_methods:
             if method == "DELETE":
                 router.add_api_route(
@@ -126,7 +133,7 @@ class Fasteve(FastAPI):
                 router.add_api_route(
                     f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
                     endpoint=item_endpoint_factory(resource, method),
-                    response_model=ItemResponseModel,
+                    response_model=ItemResponse,
                     response_model_exclude_unset=True,
                     methods=[method],
                 )
@@ -135,16 +142,20 @@ class Fasteve(FastAPI):
             router, tags=[str(resource.name)],
         )
 
-    async def create_mongo_index(self, resource: Resource) -> None:
-        schema = resource.schema
-        for field in schema.__fields__:
-            type_ = schema.__fields__[field].type_
-            name = schema.__fields__[field].name
-            if not is_new_type(schema.__fields__[field].type_):
+    async def _create_mongo_index_internal(self, resource, field_name) -> None:
+        collection = await self.data.motor(resource)
+        res = await collection.create_index(field_name, unique=True)
+        print(f"Created unique index for {field_name} in {resource.name}")
+
+    def create_mongo_index(self, resource: Resource) -> None:
+        fields = resource.schema.__fields__
+        for name in fields:
+            field = fields[name]
+            type_ = field.type_
+            if not is_new_type(type_):
                 continue
             if type_.__name__ == "Fasteve_Unique":
-                collection = await self.data.motor(resource)
-                res = await collection.create_index(name, unique=True)
+                asyncio.create_task(self._create_mongo_index_internal(resource, name))
 
     def repeat_every(
         self,
@@ -169,6 +180,58 @@ class Fasteve(FastAPI):
             return dec1(dec2(func))
 
         return merged_decorator
+
+    def _embed_data_relation(self, model, response=False):
+
+        fields = model.__fields__.keys()
+        for name in fields:
+            field = model.__fields__[name]
+
+            if not "data_relation" in field.field_info.extra:
+                continue
+
+            data_relation = field.field_info.extra["data_relation"]
+            outer_type_ = field.outer_type_
+            many = False
+
+            if outer_type_ not in (ObjectID, List[ObjectID]):
+                raise ValueError(
+                    f"Data relation ({model.__name__}: {name}) must be must be type ObjectID or List[ObjectID]"
+                )
+
+            if response:
+                response_model = self._prepare_response_model(
+                    data_relation.response_model, data_relation.name + "_embedded"
+                )  # add ids, create, updated, ect
+                if outer_type_ == ObjectID:
+                    type_ = Union[outer_type_, response_model]
+                else:
+                    type_ = Union[outer_type_, List[response_model]]
+                    many = True
+            else:
+                type_ = outer_type_
+
+            if field.required:
+                relation_field = {
+                    name: (type_, Field(..., data_relation=data_relation, many=many))
+                }
+            else:
+                relation_field = {
+                    name: (type_, Field(None, data_relation=data_relation, many=many))
+                }
+
+            # relation_field = {name:(type_,field)}
+            model = create_model(model.__name__, **relation_field, __base__=model)
+        return model
+
+    def _prepare_response_model(self, response_model, name):
+        return create_model(
+            f"out_schema_{name}",
+            id=(ObjectID, Field(..., alias="_id")),
+            updated=(datetime, Field(..., alias="_updated")),
+            created=(datetime, Field(..., alias="_created")),
+            __base__=response_model,
+        )
 
     def _register_home_endpoint(self) -> None:
         self.add_api_route(f"/", home_endpoint)

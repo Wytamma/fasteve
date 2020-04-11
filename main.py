@@ -1,8 +1,9 @@
 from fasteve import Fasteve, BaseSchema, Resource, ObjectID
 from fasteve.utils import Unique, DataRelation, SubResource
-from typing import Optional, List, NewType
+from typing import Optional, List, NewType, Union, Any
 from pydantic import EmailStr, SecretStr, Field, BaseModel
 from datetime import datetime
+from time import sleep
 
 class Data(BaseSchema):
   date: datetime # datetime.date not supported by mongo
@@ -15,13 +16,14 @@ data = Resource(schema=Data, resource_methods=['GET', 'POST', 'DELETE'], item_na
 
 class Leader(BaseSchema):
   name: str
-  age: int 
+  age: int
 
 leader = Resource(schema=Leader, resource_methods=['GET', 'POST', 'DELETE'])
 
 class Countries(BaseSchema):
   name: Unique(str)
-  leader: DataRelation(resource=leader) # embed Union[ObjectID, leader.schema]
+  leader: ObjectID = DataRelation(leader)
+  data: List[ObjectID] = DataRelation(data)
 
 data_sub_resource = SubResource(resource=data, id_field='country_id', name='data')
 
@@ -30,7 +32,7 @@ countries = Resource(
     resource_methods=['GET', 'POST', 'DELETE'], 
     item_name='country', 
     alt_id='name', 
-    sub_resources=[data_sub_resources]
+    sub_resources=[data_sub_resource]
   )
 
 resources = [countries, leader, data]
@@ -38,5 +40,10 @@ resources = [countries, leader, data]
 app = Fasteve(resources=resources, cors_origins=["*"])
 
 @app.repeat_every(seconds=60 * 60 * 24)  # every day
-def load_data_from_github() -> None:
-  print('Loading data from github --> Fasteve')
+async def count_countries_in_db() -> None:
+  data, count  = await app.data.find(countries)
+  print(f'There are {count} countries in the database!')
+
+@app.get("/custom_endpoint")
+def custom_endpoint():
+    return {"custom": "endpoint"}
