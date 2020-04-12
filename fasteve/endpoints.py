@@ -7,6 +7,7 @@ from typing import Callable, List, Union
 from .resource import Resource
 from .core.utils import log, ObjectID
 from pymongo.errors import DuplicateKeyError, BulkWriteError
+from .utils import SubResource
 
 
 def render_pymongo_error(details):
@@ -119,6 +120,57 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
         raise Exception(f'"{method}" is an invalid HTTP method')
 
     return item_endpoint
+
+
+@log
+async def process_subresource_request(request: Request, item_id) -> dict:
+    methods: dict = {"GET": get, "POST": post, "DELETE": delete}
+    if request.method not in methods:
+        raise HTTPException(405)
+    try:
+        res = await methods[request.method](request)
+        return res
+    except DuplicateKeyError as e:
+        msg = render_pymongo_error(e.details)
+        raise HTTPException(422, msg)
+    except BulkWriteError as e:
+        msg = render_pymongo_error(e.details["writeErrors"][0])
+        raise HTTPException(422, msg)
+    except Exception as e:
+        raise e
+
+
+def subresource_endpoint_factory(
+    resource: Resource, method: str, subresource: SubResource
+) -> Callable:
+    # i may have to pass lookup all the way down
+    # i think that's okay as I'll have to do it anyway for aggergation
+
+    if method in ("GET", "HEAD"):  # not sure why this...
+        # no schema validation on GET request
+        if resource.alt_id:
+
+            async def subresource_endpoint_with_alt_id(
+                request: Request,
+                item_id: Union[ObjectID, str] = Path(
+                    ..., alias=f"{resource.item_name}_id"
+                ),
+            ) -> dict:
+                return await process_subresource_request(request, item_id)
+
+            return subresource_endpoint_with_alt_id
+        else:
+
+            async def subresource_endpoint(
+                request: Request,
+                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+            ) -> dict:
+                return await process_item_request(request, item_id)
+
+            return subresource_endpoint
+
+    else:
+        raise Exception(f'"{method}" is an invalid HTTP method')
 
 
 def home_endpoint(request: Request) -> dict:

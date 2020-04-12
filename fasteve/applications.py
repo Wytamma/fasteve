@@ -5,6 +5,7 @@ from .endpoints import (
     collections_endpoint_factory,
     home_endpoint,
     item_endpoint_factory,
+    subresource_endpoint_factory,
 )
 from .core import config
 from .schema import BaseResponseSchema, BaseSchema, ItemBaseResponseSchema
@@ -53,11 +54,9 @@ class Fasteve(FastAPI):
         self.data = data(app=self)  # eve pattern
 
         for resource in self.resources:
-            # create indexes
             self.create_mongo_index(resource)
 
         for resource in self.resources:
-            # create endpoints
             self.register_resource(resource)
 
     @log
@@ -137,6 +136,23 @@ class Fasteve(FastAPI):
                     response_model_exclude_unset=True,
                     methods=[method],
                 )
+
+        for sub_resource in resource.sub_resources:
+            Response = create_model(
+                f"ResponseSchema_{resource.name}_sub_resource_{sub_resource.name}",
+                data=(List[sub_resource.resource.response_model], Field(..., alias="_data")),  # type: ignore
+                __base__=BaseResponseSchema,
+            )
+
+            print(f"Registering Sub Resource: {sub_resource.name}")
+            router.add_api_route(
+                f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}/{sub_resource.name}",
+                endpoint=subresource_endpoint_factory(resource, "GET", sub_resource),
+                response_model=Response,
+                response_model_exclude_unset=True,
+                methods=["GET"],
+            )
+
         # TODO: api versioning
         self.include_router(
             router, tags=[str(resource.name)],

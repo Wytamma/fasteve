@@ -50,6 +50,7 @@ Features (TODO)
 * Emphasis on REST
 * Full range of CRUD operations
 * Customizable resource endpoints ✅
+* Sub Resources ✅
 * Customizable, multiple item endpoints
 * Filtering and Sorting
 * Pagination ✅

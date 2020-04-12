@@ -9,13 +9,53 @@ import json
 
 @log
 async def get(request: Request) -> dict:
-
+    resource = request.state.resource
     query_params = dict(request.query_params)
-
+    path_params = dict(request.path_params)
     limit = int(query_params["max_results"]) if "max_results" in query_params else 25
     page = int(query_params["page"]) if "page" in query_params else 1
     skip = (page - 1) * limit if page > 1 else 0
 
+    query = {}
+    pipeline = []
+
+    item_id = (
+        path_params[f"{resource.item_name}_id"]
+        if f"{resource.item_name}_id" in path_params
+        else None
+    )
+    if item_id:
+        # subresource
+        subresource_path_name = request.url.path.split("/")[-1]
+        sub_resource = next(
+            (
+                resource
+                for resource in resource.sub_resources
+                if resource.name == subresource_path_name
+            ),
+            None,
+        )
+        if not sub_resource:
+            raise HTTPException(404)
+        try:
+            query[sub_resource.id_field] = ObjectID.validate(item_id)
+        except ValueError:
+            print(sub_resource)
+            lookup = {}
+            lookup["from"] = resource.name
+            lookup["localField"] = sub_resource.id_field
+            lookup["foreignField"] = "_id"
+            lookup["as"] = sub_resource.id_field
+            pipeline.append({"$lookup": lookup})
+            pipeline.append({"$unwind": "$" + sub_resource.id_field})
+            pipeline.append(
+                {"$match": {f"{sub_resource.id_field}.{resource.alt_id}": item_id}}
+            )
+            pipeline.append(
+                {"$addFields": {sub_resource.id_field: f"${sub_resource.id_field}._id"}}
+            )
+
+        resource = sub_resource.resource
     try:
         if "embedded" in query_params and query_params["embedded"]:
             embedded = json.loads(query_params["embedded"])
@@ -31,12 +71,11 @@ async def get(request: Request) -> dict:
         ]
         raise HTTPException(422, detail)
 
-    pipeline = []
     for field_name in embedded:
         if not embedded[field_name]:
             continue
         try:
-            field = request.state.resource.response_model.__fields__[field_name]
+            field = resource.response_model.__fields__[field_name]
         except:
             detail = [
                 {
@@ -68,16 +107,15 @@ async def get(request: Request) -> dict:
             pipeline.append({"$unwind": "$" + field_name})
     if pipeline:
         documents, count = await request.app.data.aggregate(
-            request.state.resource, pipline=pipeline, skip=skip, limit=limit
+            resource, pipline=pipeline, skip=skip, limit=limit
         )
     else:
         try:
             documents, count = await request.app.data.find(
-                request.state.resource, skip=skip, limit=limit
+                resource, query=query, skip=skip, limit=limit
             )
         except Exception as e:
             raise e
-
     response = {}
 
     response[config.DATA] = documents
@@ -92,7 +130,7 @@ async def get(request: Request) -> dict:
     if config.HATEOAS:
         max_results = "&max_result=" + str(limit) if limit != 25 else ""
         response[config.LINKS] = {
-            "self": {"href": request["path"], "title": request.state.resource.name},
+            "self": {"href": request["path"], "title": resource.name},
             "parent": {"href": "/", "title": "home"},
         }  # _pagination_links(resource, req, count)
         if count > limit:
@@ -109,11 +147,11 @@ async def get(request: Request) -> dict:
 
 async def get_item(request: Request, item_id: Union[ObjectID, str]) -> dict:
     try:
-        lookup = {"_id": ObjectID.validate(item_id)}
+        query = {"_id": ObjectID.validate(item_id)}
     except ValueError:
-        lookup = {request.state.resource.alt_id: item_id}
+        query = {request.state.resource.alt_id: item_id}
     try:
-        item = await request.app.data.find_one(request.state.resource, lookup)
+        item = await request.app.data.find_one(request.state.resource, query)
     except Exception as e:
         raise e
     if not item:

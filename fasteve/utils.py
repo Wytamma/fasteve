@@ -35,3 +35,7 @@ class SubResource:
     resource: Resource
     id_field: str
     name: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            self.name = self.resource.schema.name

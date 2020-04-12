@@ -23,7 +23,6 @@ leader = Resource(schema=Leader, resource_methods=['GET', 'POST', 'DELETE'])
 class Countries(BaseSchema):
   name: Unique(str)
   leader: ObjectID = DataRelation(leader)
-  data: List[ObjectID] = DataRelation(data)
 
 data_sub_resource = SubResource(resource=data, id_field='country_id', name='data')
 
@@ -32,7 +31,7 @@ countries = Resource(
     resource_methods=['GET', 'POST', 'DELETE'], 
     item_name='country', 
     alt_id='name', 
-    sub_resources=[data_sub_resource]
+    sub_resources=[data_sub_resource]  # GET /countries/<country_id|name>/data
   )
 
 resources = [countries, leader, data]

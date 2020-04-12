@@ -85,7 +85,7 @@ class Mongo(DataLayer):
         return items, count
 
     async def find(
-        self, resource: Resource, lookup: dict = {}, skip: int = 0, limit: int = 0
+        self, resource: Resource, query: dict = {}, skip: int = 0, limit: int = 0
     ) -> Tuple[List[dict], int]:
         """ Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
@@ -101,19 +101,19 @@ class Mongo(DataLayer):
         # Perform find and iterate results
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
         try:
-            async for row in collection.find(lookup, skip=skip, limit=limit):
+            async for row in collection.find(query, skip=skip, limit=limit):
                 items.append(row)
         except Exception as e:
             raise e
-        count = await collection.count_documents(lookup)
+        count = await collection.count_documents(query)
         return items, count
 
-    async def find_one(self, resource: Resource, lookup: dict) -> dict:
+    async def find_one(self, resource: Resource, query: dict) -> dict:
         """ 
         """
         collection = await self.motor(resource)
         try:
-            item = await collection.find_one(lookup)
+            item = await collection.find_one(query)
         except Exception as e:
             raise e
         return item

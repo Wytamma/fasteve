@@ -14,7 +14,7 @@ class Resource:
     response_model_include: set = field(default_factory=lambda: set())  # TODO
     response_model_exclude: set = field(default_factory=lambda: set())  # TODO
     alt_id: Optional[str] = None
-    sub_resources: Optional[List["SubResource"]] = None
+    sub_resources: Optional[List["SubResource"]] = field(default_factory=lambda: list())
 
     allowed_filters: bool = True
     projection: bool = True
