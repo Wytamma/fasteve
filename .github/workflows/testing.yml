@@ -18,6 +18,6 @@ jobs:
         pipenv install --dev --skip-lock
     - name: Test with pytest
       run: |
-        pipenv run pytest --cov=fasteve --cov=tests
+        bash ./scripts/test.sh
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
