@@ -16,8 +16,10 @@ jobs:
     - name: Install dependencies
       run: |
         pipenv install --dev --skip-lock
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.3.0
     - name: Test with pytest
       run: |
-        bash ./scripts/test.sh
+        pipenv run bash ./scripts/test.sh
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
