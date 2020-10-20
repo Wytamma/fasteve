@@ -9,8 +9,8 @@ requests = "*"
 flake8 = "*"
 autoflake = "*"
 mypy = "*"
-black = "*"
 pytest-cov = "*"
+black = "*"
 
 [packages]
 fastapi = "*"
@@ -20,3 +20,6 @@ email-validator = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
