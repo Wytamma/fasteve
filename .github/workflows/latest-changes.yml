@@ -1,20 +1,19 @@
 name: Latest Changes
 
-on: [push]
-# change to the below when v1.0 is reached
-#   pull_request_target:
-#     branches:
-#       - master
-#       # Or use the branch "master" if that's your main branch:
-#       # - master
-#     types:
-#       - closed
-#   # For manually triggering it
-#   workflow_dispatch:
-#     inputs:
-#       number:
-#         description: PR number
-#         required: true
+on:
+  pull_request_target:
+    branches:
+      - master
+      # Or use the branch "master" if that's your main branch:
+      # - master
+    types:
+      - closed
+  # For manually triggering it
+  workflow_dispatch:
+    inputs:
+      number:
+        description: PR number
+        required: true
 
 jobs:
   latest-changes:
