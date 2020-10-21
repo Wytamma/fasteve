@@ -11,6 +11,7 @@ autoflake = "*"
 mypy = "*"
 pytest-cov = "*"
 black = "*"
+typing-extensions = "*"
 
 [packages]
 fastapi = "*"
