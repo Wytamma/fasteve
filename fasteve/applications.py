@@ -9,14 +9,14 @@ from .endpoints import (
 )
 from .core import config
 from .schema import BaseResponseSchema, BaseSchema, ItemBaseResponseSchema
-from typing import List, Type, Optional, Union
+from typing import List, Type, Optional, Union, Callable
 from types import ModuleType
 from .resource import Resource
 from .io.mongo import Mongo, MongoClient
 from .io.base import DataLayer
 from .core.utils import log, ObjectID, is_new_type, repeat_every as repeat
 from datetime import datetime
-from pydantic import Field, create_model
+from pydantic import Field, create_model, BaseModel
 import asyncio
 import logging
 
@@ -52,9 +52,10 @@ class Fasteve(FastAPI):
         )  # this can't be in the application layer i.e. needs to come from data layer
 
         self.data = data(app=self)  # eve pattern
-
-        for resource in self.resources:
-            self.create_mongo_index(resource)
+        
+        if type(self.data) == Mongo:
+            for resource in self.resources:
+                self.create_mongo_index(resource)
 
         for resource in self.resources:
             self.register_resource(resource)
@@ -158,9 +159,9 @@ class Fasteve(FastAPI):
             router, tags=[str(resource.name)],
         )
 
-    async def _create_mongo_index_internal(self, resource, field_name) -> None:
-        collection = await self.data.motor(resource)
-        res = await collection.create_index(field_name, unique=True)
+    async def _create_mongo_index_internal(self, resource: Resource, field_name:str) -> None:
+        collection = await self.data.get_collection(resource)
+        res = await collection.create_index(field_name, unique=True)  # type: ignore # TODO: move to data layer
         print(f"Created unique index for {field_name} in {resource.name}")
 
     def create_mongo_index(self, resource: Resource) -> None:
@@ -170,7 +171,7 @@ class Fasteve(FastAPI):
             type_ = field.type_
             if not is_new_type(type_):
                 continue
-            if type_.__name__ == "Fasteve_Unique":
+            if type_.__name__ == "Unique":
                 asyncio.create_task(self._create_mongo_index_internal(resource, name))
 
     def repeat_every(
@@ -181,7 +182,7 @@ class Fasteve(FastAPI):
         logger: Optional[logging.Logger] = None,
         raise_exceptions: bool = False,
         max_repetitions: Optional[int] = None,
-    ):
+    ) -> Callable:
         """https://stackoverflow.com/a/52518284/5209891"""
         dec2 = repeat(
             seconds=seconds,
@@ -192,12 +193,12 @@ class Fasteve(FastAPI):
         )
         dec1 = self.on_event("startup")
 
-        def merged_decorator(func):
+        def merged_decorator(func: Callable) -> Callable:
             return dec1(dec2(func))
 
         return merged_decorator
 
-    def _embed_data_relation(self, model, response=False):
+    def _embed_data_relation(self, model: Type[BaseModel], response: bool = False) -> Type[BaseModel]:
 
         fields = model.__fields__.keys()
         for name in fields:
@@ -207,7 +208,7 @@ class Fasteve(FastAPI):
                 continue
 
             data_relation = field.field_info.extra["data_relation"]
-            outer_type_ = field.outer_type_
+            outer_type_ = field.outer_type_ 
             many = False
 
             if outer_type_ not in (ObjectID, List[ObjectID]):
@@ -220,12 +221,12 @@ class Fasteve(FastAPI):
                     data_relation.response_model, data_relation.name + "_embedded"
                 )  # add ids, create, updated, ect
                 if outer_type_ == ObjectID:
-                    type_ = Union[outer_type_, response_model]
+                    type_ = Union[Type[outer_type_], Type[response_model]]  # type: ignore # meta typing
                 else:
-                    type_ = Union[outer_type_, List[response_model]]
+                    type_ = Union[Type[outer_type_], List[Type[response_model]]]  # type: ignore # meta typing
                     many = True
             else:
-                type_ = outer_type_
+                type_ = outer_type_  # type: ignore # meta typing
 
             if field.required:
                 relation_field = {
@@ -237,10 +238,10 @@ class Fasteve(FastAPI):
                 }
 
             # relation_field = {name:(type_,field)}
-            model = create_model(model.__name__, **relation_field, __base__=model)
+            model = create_model(model.__name__, **relation_field, __base__=model) # type: ignore # TODO: define multi-type
         return model
 
-    def _prepare_response_model(self, response_model, name):
+    def _prepare_response_model(self, response_model: Type[BaseModel], name: str) -> Type[BaseModel]:
         return create_model(
             f"out_schema_{name}",
             id=(ObjectID, Field(..., alias="_id")),

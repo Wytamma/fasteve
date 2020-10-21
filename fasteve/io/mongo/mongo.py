@@ -5,7 +5,7 @@ from fasteve.resource import Resource
 from pymongo.collection import Collection
 from motor.motor_asyncio import AsyncIOMotorClient
 from fasteve.core.utils import log, ObjectID
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Any
 
 
 class DataBase:
@@ -43,7 +43,7 @@ class Mongo(DataLayer):
     def init_app(self) -> None:
         self.mongo_prefix = None
 
-    async def motor(self, resource: Resource) -> Collection:
+    async def get_collection(self, resource: Resource) -> Collection:
         # maybe it would be better to use inject db with
         # Depends(get_database) at the path operation function?
         # By better I mean more FastAPI-ish.
@@ -62,14 +62,14 @@ class Mongo(DataLayer):
         skip: int = 0,
         limit: int = 0,
     ) -> Tuple[List[dict], int]:
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
 
-        paginated_results = []
+        paginated_results:List[dict]  = []
         paginated_results.append({"$skip": skip})
         paginated_results.append({"$limit": limit})
-        facet_pipelines = {}
+        facet_pipelines: dict = {}
         facet_pipelines["paginated_results"] = paginated_results
-        facet_pipelines["total_count"] = [{"$count": "count"}]
+        facet_pipelines["total_count"] = list({"$count": "count"})
         facet = {"$facet": facet_pipelines}
         pipline.append(facet)
         count = 0
@@ -96,7 +96,7 @@ class Mongo(DataLayer):
         :param resource: Resource object.
         """
         # process_query(q)
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
         items = []
         # Perform find and iterate results
         # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#async-for
@@ -111,7 +111,7 @@ class Mongo(DataLayer):
     async def find_one(self, resource: Resource, query: dict) -> dict:
         """ 
         """
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
         try:
             item = await collection.find_one(query)
         except Exception as e:
@@ -122,7 +122,7 @@ class Mongo(DataLayer):
     async def insert(self, resource: Resource, payload: dict) -> dict:
         """ 
         """
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
         try:
             await collection.insert_one(payload)
         except Exception as e:
@@ -132,7 +132,7 @@ class Mongo(DataLayer):
     async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
         """ 
         """
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
         try:
             await collection.insert_many(payload)
         except Exception as e:
@@ -143,7 +143,7 @@ class Mongo(DataLayer):
         """ Removes an entire set of documents from a
         database collection.
         """
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
         try:
             await collection.delete_many({})
         except Exception as e:
@@ -153,7 +153,7 @@ class Mongo(DataLayer):
         """ Removes an entire set of documents from a
         database collection.
         """
-        collection = await self.motor(resource)
+        collection = await self.get_collection(resource)
         try:
             result = await collection.delete_one({"_id": item_id})
         except Exception as e:

@@ -4,13 +4,12 @@ from fastapi import HTTPException
 from .core import config
 from fastapi import Path
 from typing import Callable, List, Union
-from .resource import Resource
+from .resource import Resource, SubResource
 from .core.utils import log, ObjectID
 from pymongo.errors import DuplicateKeyError, BulkWriteError
-from .utils import SubResource
 
 
-def render_pymongo_error(details):
+def render_pymongo_error(details: dict) -> dict:
     key = list(details["keyValue"].keys())[0]
     val = details["keyValue"][key]
     msg = {
@@ -59,9 +58,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
         async def post_endpoint(request: Request, schema: schema) -> dict:
             payload = (
-                [schema.dict() for schema in schema]
+                [schema.dict() for schema in schema] # type: ignore
                 if type(schema) == list
-                else schema.dict()
+                else schema.dict() # type: ignore
             )
             setattr(request, "payload", payload)
             return await process_collections_request(request)
@@ -123,7 +122,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
 
 @log
-async def process_subresource_request(request: Request, item_id) -> dict:
+async def process_subresource_request(request: Request, item_id:Union[ObjectID, str]) -> dict:
     methods: dict = {"GET": get, "POST": post, "DELETE": delete}
     if request.method not in methods:
         raise HTTPException(405)
