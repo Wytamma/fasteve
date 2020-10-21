@@ -102,4 +102,6 @@ distributed under the `BSD license`
 
 
 Latest Changes
--* :art: Formatting with Black. PR [#11](https://github.com/Wytamma/fasteve/pull/11) by [@Wytamma](https://github.com/Wytamma).
+-
+
+* :art: Formatting with Black. PR [#11](https://github.com/Wytamma/fasteve/pull/11) by [@Wytamma](https://github.com/Wytamma).
