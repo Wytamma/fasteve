@@ -2,6 +2,7 @@ Fasteve
 ====
 [![Test](https://github.com/Wytamma/fasteve/workflows/Test/badge.svg)](https://github.com/Wytamma/fasteve/actions?query=workflow%3ATest)
 [![coverage](https://codecov.io/gh/Wytamma/fasteve/branch/master/graph/badge.svg)](https://codecov.io/gh/Wytamma/fasteve)
+[![Lint](https://github.com/Wytamma/fasteve/workflows/Lint/badge.svg)](https://github.com/Wytamma/fasteve/actions?query=workflow%3ALint)
 [![image](https://img.shields.io/github/license/wytamma/fasteve.png)](https://img.shields.io/github/license/wytamma/fasteve)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://img.shields.io/badge/code%20style-black-000000.svg)
 
