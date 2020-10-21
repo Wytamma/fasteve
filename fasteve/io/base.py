@@ -14,7 +14,7 @@ from fasteve.resource import Resource
 
 
 class ConnectionException(Exception):
-    """ Raised when DataLayer subclasses cannot find/activate to their
+    """Raised when DataLayer subclasses cannot find/activate to their
     database connection.
 
     :param driver_exception: the original exception raised by the source db
@@ -35,8 +35,7 @@ class ConnectionException(Exception):
 
 
 class Client:
-    """ Database client where you connect to the database
-    """
+    """Database client where you connect to the database"""
 
     async def get_database(self) -> None:
         raise NotImplementedError
@@ -49,7 +48,7 @@ class Client:
 
 
 class DataLayer:
-    """ Base data layer class. Defines the interface that actual data-access
+    """Base data layer class. Defines the interface that actual data-access
     classes, being subclasses, must implement. Implemented as a Flask
     extension.
 
@@ -66,8 +65,7 @@ class DataLayer:
     serializers: dict = {}
 
     def __init__(self, app) -> None:  # type: ignore
-        """ Implements extension pattern.
-        """
+        """Implements extension pattern."""
         if app is not None:
             self.app = app
             self.init_app()
@@ -75,11 +73,11 @@ class DataLayer:
             self.app = None
 
     def init_app(self) -> None:
-        """ This is where you want to initialize the db driver so it will be
+        """This is where you want to initialize the db driver so it will be
         alive through the whole instance lifespan.
         """
         raise NotImplementedError
-    
+
     async def get_collection(self, resource: Resource) -> None:
         raise NotImplementedError
 
@@ -90,7 +88,7 @@ class DataLayer:
         raise NotImplementedError
 
     async def find(self, resource: Resource, args: dict) -> Tuple[List[dict], int]:
-        """ Retrieves a set of documents (rows), matching the current request.
+        """Retrieves a set of documents (rows), matching the current request.
         Consumed when a request hits a collection/document endpoint
         (`/people/`).
 
@@ -111,11 +109,14 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    async def aggregate(self, resource: Resource,
+    async def aggregate(
+        self,
+        resource: Resource,
         pipline: List[dict] = [],
         skip: int = 0,
-        limit: int = 0,) -> Tuple[List[dict], int]:
-        """ Perform an aggregation on the resource datasource and returns
+        limit: int = 0,
+    ) -> Tuple[List[dict], int]:
+        """Perform an aggregation on the resource datasource and returns
         the result. Only implent this if the underlying db engine supports
         aggregation operations.
 
@@ -128,7 +129,7 @@ class DataLayer:
         raise NotImplementedError
 
     async def find_one(self, resource: Resource, lookup: dict) -> dict:
-        """ Retrieves a single document/record. Consumed when a request hits an
+        """Retrieves a single document/record. Consumed when a request hits an
         item endpoint (`/people/id/`).
 
         :param resource: resource being accessed. You should then use the
@@ -156,7 +157,7 @@ class DataLayer:
         raise NotImplementedError
 
     def find_one_raw(self, resource: Resource, **lookup: dict) -> None:
-        """ Retrieves a single, raw document. No projections or datasource
+        """Retrieves a single, raw document. No projections or datasource
         filters are being applied here. Just looking up the document using the
         same lookup.
 
@@ -166,7 +167,7 @@ class DataLayer:
         raise NotImplementedError
 
     def find_list_of_ids(self, resource: Resource, ids: List) -> None:
-        """ Retrieves a list of documents based on a list of primary keys
+        """Retrieves a list of documents based on a list of primary keys
         The primary key is the field defined in `ID_FIELD`.
         This is a separate function to allow us to use per-database
         optimizations for this type of query.
@@ -181,7 +182,7 @@ class DataLayer:
         raise NotImplementedError
 
     def insert(self, resource: Resource, payload: dict) -> dict:
-        """ Inserts a document into a resource collection/table.
+        """Inserts a document into a resource collection/table.
 
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve both
@@ -192,7 +193,7 @@ class DataLayer:
         raise NotImplementedError
 
     async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
-        """ Inserts a document into a resource collection/table.
+        """Inserts a document into a resource collection/table.
 
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve both
@@ -205,7 +206,7 @@ class DataLayer:
     def update(
         self, resource: Resource, id_: str, updates: dict, original: dict
     ) -> None:
-        """ Updates a collection/table document/row.
+        """Updates a collection/table document/row.
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve
                          the actual datasource name.
@@ -222,7 +223,7 @@ class DataLayer:
     def replace(
         self, resource: Resource, id_: str, document: dict, original: dict
     ) -> None:
-        """ Replaces a collection/table document/row.
+        """Replaces a collection/table document/row.
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve
                          the actual datasource name.
@@ -236,7 +237,7 @@ class DataLayer:
         raise NotImplementedError
 
     async def remove(self, resource: Resource) -> None:
-        """ Removes a document/row or an entire set of documents/rows from a
+        """Removes a document/row or an entire set of documents/rows from a
         database collection/table.
 
         :param resource: resource being accessed. You should then use
@@ -250,13 +251,13 @@ class DataLayer:
         raise NotImplementedError
 
     def combine_queries(self, query_a: dict, query_b: dict) -> None:
-        """ Takes two db queries and applies db-specific syntax to produce
+        """Takes two db queries and applies db-specific syntax to produce
         the intersection.
         """
         raise NotImplementedError
 
     def get_value_from_query(self, query: dict, field_name: str) -> None:
-        """ Parses the given potentially-complex query and returns the value
+        """Parses the given potentially-complex query and returns the value
         being assigned to the field given in `field_name`.
 
         This mainly exists to deal with more complicated compound queries
@@ -264,13 +265,13 @@ class DataLayer:
         raise NotImplementedError
 
     def query_contains_field(self, query: dict, field_name: str) -> None:
-        """ For the specified field name, does the query contain it?
+        """For the specified field name, does the query contain it?
         Used know whether we need to parse a compound query.
         """
         raise NotImplementedError
 
     def is_empty(self, resource: Resource) -> None:
-        """ Returns True if the collection is empty; False otherwise. While
+        """Returns True if the collection is empty; False otherwise. While
         a user could rely on self.find() method to achieve the same result,
         this method can probably take advantage of specific datastore features
         to provide better performance.

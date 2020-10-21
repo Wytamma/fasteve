@@ -52,7 +52,7 @@ class Fasteve(FastAPI):
         )  # this can't be in the application layer i.e. needs to come from data layer
 
         self.data = data(app=self)  # eve pattern
-        
+
         if type(self.data) == Mongo:
             for resource in self.resources:
                 self.create_mongo_index(resource)
@@ -156,10 +156,13 @@ class Fasteve(FastAPI):
 
         # TODO: api versioning
         self.include_router(
-            router, tags=[str(resource.name)],
+            router,
+            tags=[str(resource.name)],
         )
 
-    async def _create_mongo_index_internal(self, resource: Resource, field_name:str) -> None:
+    async def _create_mongo_index_internal(
+        self, resource: Resource, field_name: str
+    ) -> None:
         collection = await self.data.get_collection(resource)
         res = await collection.create_index(field_name, unique=True)  # type: ignore # TODO: move to data layer
         print(f"Created unique index for {field_name} in {resource.name}")
@@ -198,7 +201,9 @@ class Fasteve(FastAPI):
 
         return merged_decorator
 
-    def _embed_data_relation(self, model: Type[BaseModel], response: bool = False) -> Type[BaseModel]:
+    def _embed_data_relation(
+        self, model: Type[BaseModel], response: bool = False
+    ) -> Type[BaseModel]:
 
         fields = model.__fields__.keys()
         for name in fields:
@@ -208,7 +213,7 @@ class Fasteve(FastAPI):
                 continue
 
             data_relation = field.field_info.extra["data_relation"]
-            outer_type_ = field.outer_type_ 
+            outer_type_ = field.outer_type_
             many = False
 
             if outer_type_ not in (ObjectID, List[ObjectID]):
@@ -238,10 +243,12 @@ class Fasteve(FastAPI):
                 }
 
             # relation_field = {name:(type_,field)}
-            model = create_model(model.__name__, **relation_field, __base__=model) # type: ignore # TODO: define multi-type
+            model = create_model(model.__name__, **relation_field, __base__=model)  # type: ignore # TODO: define multi-type
         return model
 
-    def _prepare_response_model(self, response_model: Type[BaseModel], name: str) -> Type[BaseModel]:
+    def _prepare_response_model(
+        self, response_model: Type[BaseModel], name: str
+    ) -> Type[BaseModel]:
         return create_model(
             f"out_schema_{name}",
             id=(ObjectID, Field(..., alias="_id")),

@@ -35,7 +35,8 @@ class ItemLinksModel(BaseModel):
 
 class BaseResponseSchema(BaseSchema):
     meta: Optional[MetaModel] = Field(
-        "MetaModel", alias="_meta",
+        "MetaModel",
+        alias="_meta",
     )
     links: Optional[LinksModel] = Field("LinksModel", alias="_links")
 

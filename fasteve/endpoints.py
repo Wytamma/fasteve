@@ -58,9 +58,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
         async def post_endpoint(request: Request, schema: schema) -> dict:
             payload = (
-                [schema.dict() for schema in schema] # type: ignore
+                [schema.dict() for schema in schema]  # type: ignore
                 if type(schema) == list
-                else schema.dict() # type: ignore
+                else schema.dict()  # type: ignore
             )
             setattr(request, "payload", payload)
             return await process_collections_request(request)
@@ -69,7 +69,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 
     elif method == "DELETE":
         # no schema validation on DELETE HEAD request
-        async def delete_endpoint(request: Request,) -> dict:
+        async def delete_endpoint(
+            request: Request,
+        ) -> dict:
             return await process_collections_request(request)
 
         return delete_endpoint
@@ -122,7 +124,9 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
 
 @log
-async def process_subresource_request(request: Request, item_id:Union[ObjectID, str]) -> dict:
+async def process_subresource_request(
+    request: Request, item_id: Union[ObjectID, str]
+) -> dict:
     methods: dict = {"GET": get, "POST": post, "DELETE": delete}
     if request.method not in methods:
         raise HTTPException(405)

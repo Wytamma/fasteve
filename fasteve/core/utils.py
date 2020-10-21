@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 
 def log(func: Callable) -> Callable:
     """
-    A decorator that wraps the passed in function and logs 
+    A decorator that wraps the passed in function and logs
     """
 
     @wraps(func)
@@ -63,7 +63,7 @@ def repeat_every(
 ) -> NoArgsNoReturnDecorator:
     """
     This function was written by @dmontagu for this excellent FastAPI Package fastapi-utils. Please go check it out and support this work!
-     
+
     This function returns a decorator that modifies a function so it is periodically re-executed after its first call.
     The function it decorates should accept no arguments and return nothing. If necessary, this can be accomplished
     by using `functools.partial` or otherwise wrapping the target function prior to decoration.

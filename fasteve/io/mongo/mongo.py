@@ -5,7 +5,7 @@ from fasteve.resource import Resource
 from pymongo.collection import Collection
 from motor.motor_asyncio import AsyncIOMotorClient
 from fasteve.core.utils import log, ObjectID
-from typing import Tuple, List, Dict, Any
+from typing import List, Tuple
 
 
 class DataBase:
@@ -37,8 +37,7 @@ class MongoClient(Client):
 
 
 class Mongo(DataLayer):
-    """ MongoDB data access layer for Fasteve.
-    """
+    """MongoDB data access layer for Fasteve."""
 
     def init_app(self) -> None:
         self.mongo_prefix = None
@@ -64,7 +63,7 @@ class Mongo(DataLayer):
     ) -> Tuple[List[dict], int]:
         collection = await self.get_collection(resource)
 
-        paginated_results:List[dict]  = []
+        paginated_results: List[dict] = []
         paginated_results.append({"$skip": skip})
         paginated_results.append({"$limit": limit})
         facet_pipelines: dict = {}
@@ -87,7 +86,7 @@ class Mongo(DataLayer):
     async def find(
         self, resource: Resource, query: dict = {}, skip: int = 0, limit: int = 0
     ) -> Tuple[List[dict], int]:
-        """ Retrieves a set of documents matching a given request. Queries can
+        """Retrieves a set of documents matching a given request. Queries can
         be expressed in two different formats: the mongo query syntax, and the
         python syntax. The first kind of query would look like: ::
             ?where={"name": "john doe"}
@@ -109,8 +108,7 @@ class Mongo(DataLayer):
         return items, count
 
     async def find_one(self, resource: Resource, query: dict) -> dict:
-        """ 
-        """
+        """"""
         collection = await self.get_collection(resource)
         try:
             item = await collection.find_one(query)
@@ -120,8 +118,7 @@ class Mongo(DataLayer):
 
     @log
     async def insert(self, resource: Resource, payload: dict) -> dict:
-        """ 
-        """
+        """"""
         collection = await self.get_collection(resource)
         try:
             await collection.insert_one(payload)
@@ -130,8 +127,7 @@ class Mongo(DataLayer):
         return payload
 
     async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
-        """ 
-        """
+        """"""
         collection = await self.get_collection(resource)
         try:
             await collection.insert_many(payload)
@@ -140,7 +136,7 @@ class Mongo(DataLayer):
         return payload
 
     async def remove(self, resource: Resource) -> None:
-        """ Removes an entire set of documents from a
+        """Removes an entire set of documents from a
         database collection.
         """
         collection = await self.get_collection(resource)
@@ -150,7 +146,7 @@ class Mongo(DataLayer):
             raise e
 
     async def remove_item(self, resource: Resource, item_id: ObjectID) -> None:
-        """ Removes an entire set of documents from a
+        """Removes an entire set of documents from a
         database collection.
         """
         collection = await self.get_collection(resource)

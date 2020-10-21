@@ -71,7 +71,9 @@ def test_get_path(test_client, path, expected_status, expected_response):
 
 @pytest.mark.parametrize(
     "path,data,expected_status,expected_response",
-    [("/people", {"name": "Curie"}, 201, {"name": "Curie"}),],
+    [
+        ("/people", {"name": "Curie"}, 201, {"name": "Curie"}),
+    ],
 )
 def test_insert(test_client, path, data, expected_status, expected_response):
     response = test_client.post(path, json=data)
@@ -107,7 +109,10 @@ def test_bulk_insert(test_client, path, data, expected_status, expected_response
 
 
 @pytest.mark.parametrize(
-    "path,data,expected_status", [("/people", {"name": "Curie"}, 200),],
+    "path,data,expected_status",
+    [
+        ("/people", {"name": "Curie"}, 200),
+    ],
 )
 def test_get_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
@@ -119,7 +124,10 @@ def test_get_item(test_client, path, data, expected_status):
 
 
 @pytest.mark.parametrize(
-    "path,data,expected_status", [("/people", {"name": "Curie"}, 204),],
+    "path,data,expected_status",
+    [
+        ("/people", {"name": "Curie"}, 204),
+    ],
 )
 def test_delete_path(test_client, path, data, expected_status):
     _ = test_client.post(path, json=data)  # insert data for test
@@ -130,7 +138,10 @@ def test_delete_path(test_client, path, data, expected_status):
 
 
 @pytest.mark.parametrize(
-    "path,data,expected_status", [("/people", {"name": "Curie"}, 204),],
+    "path,data,expected_status",
+    [
+        ("/people", {"name": "Curie"}, 204),
+    ],
 )
 def test_delete_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test

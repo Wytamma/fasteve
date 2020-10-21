@@ -5,8 +5,6 @@ from typing import List, Optional, Type
 from pydantic import BaseModel
 
 
-
-
 @dataclass
 class Resource:
     schema: Type[BaseModel]  # in the db
@@ -39,14 +37,12 @@ class Resource:
             self.response_model = self.schema
 
 
-
 @dataclass
 class SubResource:
     resource: Resource
     id_field: str
-    name: Optional[str] = None 
+    name: Optional[str] = None
 
     def __post_init__(self) -> None:
         if not self.name:
-            self.name = self.resource.schema.name # type: ignore # set name to resource schema name by default
-
+            self.name = self.resource.schema.name  # type: ignore # set name to resource schema name by default
