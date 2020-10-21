@@ -19,6 +19,6 @@ jobs:
           extra-pylint-options: ""
           extra-pycodestyle-options: ""
           extra-flake8-options: ""
-          extra-black-options: "fasteve tests"
-          extra-mypy-options: "fasteve --disallow-untyped-defs"
+          extra-black-options: ""
+          extra-mypy-options: "--disallow-untyped-defs"
           extra-isort-options: ""
