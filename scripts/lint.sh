@@ -3,5 +3,5 @@
 set -e
 set -x
 
-mypy fasteve --disallow-untyped-defs
+mypy fasteve tests --disallow-untyped-defs
 black fasteve tests --check
