@@ -79,6 +79,9 @@ class DataLayer:
         alive through the whole instance lifespan.
         """
         raise NotImplementedError
+    
+    async def get_collection(self, resource: Resource) -> None:
+        raise NotImplementedError
 
     def connect(self) -> None:
         raise NotImplementedError
@@ -108,7 +111,10 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def aggregate(self, resource: Resource, pipeline: dict, options: dict) -> None:
+    async def aggregate(self, resource: Resource,
+        pipline: List[dict] = [],
+        skip: int = 0,
+        limit: int = 0,) -> Tuple[List[dict], int]:
         """ Perform an aggregation on the resource datasource and returns
         the result. Only implent this if the underlying db engine supports
         aggregation operations.
