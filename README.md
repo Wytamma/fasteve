@@ -7,8 +7,6 @@ Fasteve
 
 Fasteve is a rebuild of [Eve](https://github.com/pyeve/eve) using [FastAPI](https://github.com/tiangolo/fastapi) as a base.
 
-⭐ 10 stars and I'll move this project to high priority in my to do list ⭐
-
 Fasteve is Simple
 -------------
 
