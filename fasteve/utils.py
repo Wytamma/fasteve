@@ -1,22 +1,19 @@
 import hashlib
 from json import dumps
-from typing import List, NewType, Optional, Any
+from typing import Any, List
 from .resource import Resource
-from dataclasses import dataclass
 from pydantic import Field
 
 
 def document_etag(value: dict, ignore_fields: List[str] = None) -> str:
-    """ Computes and returns a valid ETag for the input value.
-    """
+    """Computes and returns a valid ETag for the input value."""
     h = hashlib.sha1()
     h.update(dumps(value, sort_keys=True).encode("utf-8"))
     return h.hexdigest()
 
 
-        
 def Unique(old_type: Any) -> Any:
-    Unique = type("Unique", (old_type,), {"__name__":"Unique"})
+    Unique = type("Unique", (old_type,), {"__name__": "Unique"})
     return Unique
 
 
