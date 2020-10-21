@@ -1,0 +1,19 @@
+name: Lint
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install pipenv
+        uses: dschep/install-pipenv-action@v1
+      - name: Install dependencies
+        run: pipenv install --dev --skip-lock
+      - name: Lint
+        run: pipenv run bash ./scripts/lint.sh
