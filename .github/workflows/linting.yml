@@ -18,6 +18,6 @@ jobs:
       - name: mypy
         run: pipenv run mypy fasteve --disallow-untyped-defs
       - name: black
-        run: pipenv run bash black fasteve --check
+        run: pipenv run black fasteve --check
 
 
