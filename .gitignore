@@ -3,6 +3,7 @@
 Pipfile.lock
 .coverage
 *.pyc
-
-Notes.md
 coverage.xml
+.vscode
+.pytest_cache
+Notes.md
