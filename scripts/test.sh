@@ -3,4 +3,4 @@
 set -e
 set -x
 
-python -m pytest --cov=fasteve --cov=tests
+python -m pytest --cov=fasteve --cov=tests --cov-report=xml
