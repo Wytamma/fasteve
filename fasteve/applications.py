@@ -33,7 +33,9 @@ class Fasteve(FastAPI):
 
         # set defaults
         self.cors_origins = cors_origins
+
         # validate user settings
+        self._validate_resources(resources)
         self.resources = resources
 
         self._validate_config(config)
@@ -41,7 +43,6 @@ class Fasteve(FastAPI):
 
         self._register_resource_middleware()
         self._register_CORS_middleware()
-
         self._register_home_endpoint()
 
         # connect to db
@@ -292,3 +293,8 @@ class Fasteve(FastAPI):
     def _validate_config(self, config: ModuleType) -> None:
         # raise errors if config is invalid
         pass
+
+    def _validate_resources(self, resources: List[Resource]) -> None:
+        # raise errors if resource is invalid
+        for resource in resources:
+            pass
