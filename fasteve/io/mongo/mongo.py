@@ -149,7 +149,7 @@ class Mongo(DataLayer):
         """Removes a single document from a database collection."""
         collection = await self.get_collection(resource)
         try:
-            result = await collection.delete_one({"_id": item_id})
+            await collection.delete_one({"_id": item_id})
         except Exception as e:
             raise e
 
@@ -162,5 +162,3 @@ class Mongo(DataLayer):
             await collection.replace_one({"_id": item_id}, payload)
         except Exception as e:
             raise e
-        payload["_id"] = item_id
-        return payload
