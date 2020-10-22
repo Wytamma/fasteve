@@ -156,7 +156,7 @@ def test_delete_item(test_client, path, data, expected_status):
 @pytest.mark.parametrize(
     "path,data,expected_status",
     [
-        ("/people", {"name": "Lovelace"}, 201),
+        ("/people", {"name": "Lovelace"}, 204),
     ],
 )
 def test_put_replace_item(test_client, path, data, expected_status):
@@ -164,6 +164,7 @@ def test_put_replace_item(test_client, path, data, expected_status):
     item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.put(path + f"/{item_id}", json=data)
     assert response.status_code == expected_status
+    response = test_client.get(path + f"/{item_id}")
     item = response.json()[app.config.DATA][0]
     assert item["name"] == data["name"]
     assert item["_id"] == item_id
