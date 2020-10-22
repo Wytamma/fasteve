@@ -1,5 +1,5 @@
-from fasteve import Fasteve, BaseSchema, Resource, ObjectID
-from fasteve.utils import Unique, DataRelation, SubResource
+from fasteve import Fasteve, BaseSchema, Resource, ObjectID, SubResource
+from fasteve.utils import Unique, DataRelation
 from typing import Optional, List, NewType, Union, Any
 from pydantic import EmailStr, SecretStr, Field, BaseModel
 from datetime import datetime
