@@ -4,9 +4,10 @@ from fasteve.methods.post import post
 from fasteve.methods.common import get_document
 from typing import Union
 from fasteve.core.utils import ObjectID
+from fastapi import Response
 
 
-async def put_item(request: Request, item_id: Union[ObjectID, str]) -> None:
+async def put_item(request: Request, item_id: Union[ObjectID, str]) -> Response:
     orginal_document = await get_document(request, item_id)
     print(orginal_document)
     payload = getattr(request, "payload")
@@ -18,7 +19,7 @@ async def put_item(request: Request, item_id: Union[ObjectID, str]) -> None:
         # if it is not valid must be an alt_id
         setattr(request, "payload", payload)
         await post(request)
-        return None
+        return Response(status_code=204)
 
     # replace
     now = datetime.now()
@@ -31,3 +32,4 @@ async def put_item(request: Request, item_id: Union[ObjectID, str]) -> None:
         )
     except Exception as e:
         raise e
+    return Response(status_code=204)
