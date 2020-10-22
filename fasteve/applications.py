@@ -123,7 +123,7 @@ class Fasteve(FastAPI):
         )
 
         for method in resource.item_methods:
-            if method in ["PUT", "DELETE"]:
+            if method in ["PUT", "DELETE", "PATCH"]:
                 router.add_api_route(
                     f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
                     endpoint=item_endpoint_factory(resource, method),
@@ -297,4 +297,6 @@ class Fasteve(FastAPI):
     def _validate_resources(self, resources: List[Resource]) -> None:
         # raise errors if resource is invalid
         for resource in resources:
+            # check methods i.e. post only on resource
+            # check alt_id is unique
             pass

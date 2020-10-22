@@ -1,5 +1,5 @@
 from starlette.requests import Request
-from .methods import get, post, get_item, delete, delete_item, put_item
+from .methods import get, post, get_item, delete, delete_item, put_item, patch_item
 from fastapi import HTTPException
 from .core import config
 from fastapi import Path
@@ -7,6 +7,7 @@ from typing import Callable, List, Union, Optional
 from .resource import Resource, SubResource
 from .core.utils import log, ObjectID
 from pymongo.errors import DuplicateKeyError, BulkWriteError
+from copy import deepcopy
 
 
 def render_pymongo_error(details: dict) -> dict:
@@ -62,6 +63,7 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
                 if type(schema) == list
                 else schema.dict()  # type: ignore
             )
+
             setattr(request, "payload", payload)
             return await process_collections_request(request)
 
@@ -83,7 +85,12 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
 async def process_item_request(
     request: Request, item_id: Union[ObjectID, str]
 ) -> Optional[dict]:
-    methods = {"GET": get_item, "DELETE": delete_item, "PUT": put_item}
+    methods = {
+        "GET": get_item,
+        "DELETE": delete_item,
+        "PUT": put_item,
+        "PATCH": patch_item,
+    }
     if request.method not in methods:
         raise HTTPException(405)
     try:
@@ -119,32 +126,42 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
                 return await process_item_request(request, item_id)
 
             return item_endpoint
-    elif method == "PUT":
+    elif method in ["PUT", "PATCH"]:
         schema = resource.schema
+        if method == "PATCH":
+            schema = type(
+                "schema",
+                (schema,),
+                {},
+            )
+            fields = schema.__fields__
+            for field_name in fields:
+                fields[field_name].required = False
+            # schema.__fields__ = fields
         if resource.alt_id:
 
-            async def put_item_endpoint_with_alt_id(
+            async def mod_item_endpoint_with_alt_id(
                 request: Request,
                 schema: schema,  # type: ignore
                 item_id: Union[ObjectID, str] = Path(
                     ..., alias=f"{resource.item_name}_id"
                 ),
             ) -> Optional[dict]:
-                setattr(request, "payload", schema.dict())  # type: ignore
+                setattr(request, "payload", schema.dict(exclude_unset=True))  # type: ignore
                 return await process_item_request(request, item_id)
 
-            return put_item_endpoint_with_alt_id
+            return mod_item_endpoint_with_alt_id
         else:
 
-            async def put_item_endpoint(
+            async def mod_item_endpoint(
                 request: Request,
                 schema: schema,  # type: ignore
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
             ) -> Optional[dict]:
-                setattr(request, "payload", schema.dict())  # type: ignore
+                setattr(request, "payload", schema.dict(exclude_unset=True))  # type: ignore
                 return await process_item_request(request, item_id)
 
-            return put_item_endpoint
+            return mod_item_endpoint
     else:
         raise Exception(f'"{method}" is an invalid HTTP method')
 

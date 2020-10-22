@@ -74,7 +74,6 @@ class Mongo(DataLayer):
         count = 0
         try:
             async for res in collection.aggregate(pipline):
-                print(res)
                 items = res["paginated_results"]
                 if res["total_count"]:
                     # IndexError: list index out of range
@@ -160,5 +159,15 @@ class Mongo(DataLayer):
         collection = await self.get_collection(resource)
         try:
             await collection.replace_one({"_id": item_id}, payload)
+        except Exception as e:
+            raise e
+
+    async def update_item(
+        self, resource: Resource, item_id: ObjectID, payload: dict
+    ) -> None:
+        """Updates single document from a database collection"""
+        collection = await self.get_collection(resource)
+        try:
+            await collection.update_one({"_id": item_id}, {"$set": payload})
         except Exception as e:
             raise e

@@ -14,7 +14,7 @@ people = Resource(
     name="people",
     schema=People,
     resource_methods=["GET", "POST", "DELETE"],
-    item_methods=["GET", "DELETE", "PUT"],
+    item_methods=["GET", "DELETE", "PUT", "PATCH"],
 )
 
 resources = [people]
@@ -183,6 +183,23 @@ def test_put_insert_item(test_client, path, data, expected_status):
     assert response.status_code == expected_status
     response = test_client.get(path + f"/{item_id}")
     assert response.status_code == 200
+    item = response.json()[app.config.DATA][0]
+    assert item["name"] == data["name"]
+    assert item["_id"] == item_id
+
+
+@pytest.mark.parametrize(
+    "path,data,expected_status",
+    [
+        ("/people", {"name": "Lovelace"}, 204),
+    ],
+)
+def test_patch_item(test_client, path, data, expected_status):
+    response = test_client.post(path, json={"name": "Curie"})  # insert data for test
+    item_id = response.json()[app.config.DATA][0]["_id"]
+    response = test_client.patch(path + f"/{item_id}", json=data)
+    assert response.status_code == expected_status
+    response = test_client.get(path + f"/{item_id}")
     item = response.json()[app.config.DATA][0]
     assert item["name"] == data["name"]
     assert item["_id"] == item_id
