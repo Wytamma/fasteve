@@ -155,7 +155,7 @@ class Mongo(DataLayer):
 
     async def replace_item(
         self, resource: Resource, item_id: ObjectID, payload: dict
-    ) -> dict:
+    ) -> None:
         """Replaces single document from a database collection"""
         collection = await self.get_collection(resource)
         try:

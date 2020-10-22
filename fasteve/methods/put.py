@@ -11,8 +11,7 @@ async def put_item(request: Request, item_id: Union[ObjectID, str]) -> None:
     orginal_document = await get_document(request, item_id)
     if not orginal_document:
         # insert
-        response = await post(request)
-        return response
+        document = await post(request)
 
     # replace
     payload = getattr(request, "payload")
