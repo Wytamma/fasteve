@@ -1,6 +1,5 @@
 from starlette.requests import Request
 from datetime import datetime
-from ..core import config
 from fasteve.methods.post import post
 from fasteve.methods.common import get_document
 from typing import Union
@@ -15,12 +14,11 @@ async def put_item(request: Request, item_id: Union[ObjectID, str]) -> None:
     if not orginal_document:
         # insert
         if ObjectID.is_valid(item_id):
-            payload['_id'] = item_id
-        # if it is not valid must be an alt_id 
+            payload["_id"] = item_id
+        # if it is not valid must be an alt_id
         setattr(request, "payload", payload)
         await post(request)
         return None
-
 
     # replace
     now = datetime.now()

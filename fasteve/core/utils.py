@@ -34,11 +34,10 @@ class ObjectID(str):
         if not ObjectId.is_valid(str(v)):
             raise ValueError(f"Not a valid ObjectId: {v}")
         return ObjectId(str(v))
-    
+
     @classmethod
     def is_valid(cls, v: ObjectId) -> bool:
         return ObjectId.is_valid(str(v))
-
 
 
 test_type = NewType("test_type", str)

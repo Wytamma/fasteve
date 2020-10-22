@@ -170,6 +170,7 @@ def test_put_replace_item(test_client, path, data, expected_status):
     assert item["name"] == data["name"]
     assert item["_id"] == item_id
 
+
 @pytest.mark.parametrize(
     "path,data,expected_status",
     [
