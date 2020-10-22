@@ -122,7 +122,16 @@ class Fasteve(FastAPI):
         )
 
         for method in resource.item_methods:
-            if method == "DELETE":
+            if method == "PUT":
+                router.add_api_route(
+                    f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
+                    endpoint=item_endpoint_factory(resource, method),
+                    response_model=ItemResponse,
+                    response_model_exclude_unset=True,
+                    methods=[method],
+                    status_code=201,
+                )
+            elif method == "DELETE":
                 router.add_api_route(
                     f"/{resource.name}/{{{str(resource.item_name) + '_id'}}}",
                     endpoint=item_endpoint_factory(resource, method),

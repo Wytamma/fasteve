@@ -13,7 +13,7 @@ people = Resource(
     name="people",
     schema=People,
     resource_methods=["GET", "POST", "DELETE"],
-    item_methods=["GET", "DELETE"],
+    item_methods=["GET", "DELETE", "PUT"],
 )
 
 resources = [people]
@@ -80,6 +80,7 @@ def test_insert(test_client, path, data, expected_status, expected_response):
     assert response.status_code == expected_status
     # what's the correct response?
     assert response.json()[app.config.DATA][0]["name"] == expected_response["name"]
+    assert "_id" in response.json()[app.config.DATA][0].keys()
 
 
 @pytest.mark.parametrize(
@@ -145,9 +146,24 @@ def test_delete_path(test_client, path, data, expected_status):
 )
 def test_delete_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
-    response.json()[app.config.DATA][0]
     item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.delete(path + f"/{item_id}")
     assert response.status_code == expected_status
     response = test_client.get(path + f"/{item_id}")
     assert response.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "path,data,expected_status",
+    [
+        ("/people", {"name": "Lovelace"}, 201),
+    ],
+)
+def test_put_replace_item(test_client, path, data, expected_status):
+    response = test_client.post(path, json={"name": "Curie"})  # insert data for test
+    item_id = response.json()[app.config.DATA][0]["_id"]
+    response = test_client.put(path + f"/{item_id}", json=data)
+    assert response.status_code == expected_status
+    item = response.json()[app.config.DATA][0]
+    assert item["name"] == data["name"]
+    assert item["_id"] == item_id

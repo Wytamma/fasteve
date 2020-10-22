@@ -8,8 +8,8 @@ from pydantic import BaseModel
 @dataclass
 class Resource:
     schema: Type[BaseModel]  # in the db
-    name: str = None  # type: ignore # set name to lowercase schema name by default
-    item_name: str = None  # type: ignore # set to name by default
+    name: str = ""
+    item_name: str = ""
     resource_methods: List[str] = field(default_factory=lambda: ["GET"])
     item_methods: List[str] = field(default_factory=lambda: ["GET"])
     response_model: Type[BaseModel] = None  # type: ignore # schema used as default

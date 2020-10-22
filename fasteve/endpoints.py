@@ -1,9 +1,9 @@
 from starlette.requests import Request
-from .methods import get, post, get_item, delete, delete_item
+from .methods import get, post, get_item, delete, delete_item, put_item
 from fastapi import HTTPException
 from .core import config
 from fastapi import Path
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Optional
 from .resource import Resource, SubResource
 from .core.utils import log, ObjectID
 from pymongo.errors import DuplicateKeyError, BulkWriteError
@@ -80,15 +80,17 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         raise Exception(f'"{method}" is an invalid HTTP method')
 
 
-async def process_item_request(request: Request, item_id: Union[ObjectID, str]) -> dict:
-    methods = {"GET": get_item, "DELETE": delete_item}
+async def process_item_request(
+    request: Request, item_id: Union[ObjectID, str]
+) -> Optional[dict]:
+    methods = {"GET": get_item, "DELETE": delete_item, "PUT": put_item}
     if request.method not in methods:
         raise HTTPException(405)
     try:
-        res = await methods[request.method](request, item_id)  # type: ignore # this is giving a mypy error because of mixed return types
-        return res
+        res = await methods[request.method](request, item_id)  # type: ignore
     except Exception as e:
         raise e
+    return res
 
 
 def item_endpoint_factory(resource: Resource, method: str) -> Callable:
@@ -96,6 +98,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
     if method in ("GET", "HEAD", "DELETE"):
         # no schema validation on GET request
+        # TODO: DELETE needs if-match header?
         if resource.alt_id:
 
             async def item_endpoint_with_alt_id(
@@ -103,7 +106,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
                 item_id: Union[ObjectID, str] = Path(
                     ..., alias=f"{resource.item_name}_id"
                 ),
-            ) -> dict:
+            ) -> Optional[dict]:
                 return await process_item_request(request, item_id)
 
             return item_endpoint_with_alt_id
@@ -112,11 +115,36 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
             async def item_endpoint(
                 request: Request,
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
-            ) -> dict:
+            ) -> Optional[dict]:
                 return await process_item_request(request, item_id)
 
             return item_endpoint
+    elif method == "PUT":
+        schema = resource.schema
+        if resource.alt_id:
 
+            async def put_item_endpoint_with_alt_id(
+                request: Request,
+                schema: schema,  # type: ignore
+                item_id: Union[ObjectID, str] = Path(
+                    ..., alias=f"{resource.item_name}_id"
+                ),
+            ) -> Optional[dict]:
+                setattr(request, "payload", schema.dict())  # type: ignore
+                return await process_item_request(request, item_id)
+
+            return put_item_endpoint_with_alt_id
+        else:
+
+            async def put_item_endpoint(
+                request: Request,
+                schema: schema,  # type: ignore
+                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+            ) -> Optional[dict]:
+                setattr(request, "payload", schema.dict())  # type: ignore
+                return await process_item_request(request, item_id)
+
+            return put_item_endpoint
     else:
         raise Exception(f'"{method}" is an invalid HTTP method')
 
@@ -167,7 +195,7 @@ def subresource_endpoint_factory(
             async def subresource_endpoint(
                 request: Request,
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
-            ) -> dict:
+            ) -> Optional[dict]:
                 return await process_item_request(request, item_id)
 
             return subresource_endpoint
