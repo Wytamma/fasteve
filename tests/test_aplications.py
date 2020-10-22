@@ -3,6 +3,7 @@ from starlette.testclient import TestClient
 import pytest
 from pytest import fixture
 from fasteve.io.mongo import MongoClient
+from bson import ObjectId
 
 
 class People(BaseSchema):
@@ -165,6 +166,22 @@ def test_put_replace_item(test_client, path, data, expected_status):
     response = test_client.put(path + f"/{item_id}", json=data)
     assert response.status_code == expected_status
     response = test_client.get(path + f"/{item_id}")
+    item = response.json()[app.config.DATA][0]
+    assert item["name"] == data["name"]
+    assert item["_id"] == item_id
+
+@pytest.mark.parametrize(
+    "path,data,expected_status",
+    [
+        ("/people", {"name": "Lovelace"}, 204),
+    ],
+)
+def test_put_insert_item(test_client, path, data, expected_status):
+    item_id = str(ObjectId())
+    response = test_client.put(path + f"/{item_id}", json=data)
+    assert response.status_code == expected_status
+    response = test_client.get(path + f"/{item_id}")
+    assert response.status_code == 200
     item = response.json()[app.config.DATA][0]
     assert item["name"] == data["name"]
     assert item["_id"] == item_id
