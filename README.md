@@ -104,6 +104,7 @@ distributed under the `BSD license`
 Latest Changes
 -
 
+* :bug: PUT does upsert when ID not found. PR [#14](https://github.com/Wytamma/fasteve/pull/14) by [@Wytamma](https://github.com/Wytamma).
 * :art: PUT returns 204 (No Content). PR [#13](https://github.com/Wytamma/fasteve/pull/13) by [@Wytamma](https://github.com/Wytamma).
 * Add PUT method. PR [#12](https://github.com/Wytamma/fasteve/pull/12) by [@Wytamma](https://github.com/Wytamma).
 * :art: Formatting with Black. PR [#11](https://github.com/Wytamma/fasteve/pull/11) by [@Wytamma](https://github.com/Wytamma).
