@@ -165,5 +165,5 @@ def test_put_replace_item(test_client, path, data, expected_status):
     response = test_client.put(path + f"/{item_id}", json=data)
     assert response.status_code == expected_status
     item = response.json()[app.config.DATA][0]
-    assert item["name"] == data['name']
+    assert item["name"] == data["name"]
     assert item["_id"] == item_id

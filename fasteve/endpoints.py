@@ -80,7 +80,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         raise Exception(f'"{method}" is an invalid HTTP method')
 
 
-async def process_item_request(request: Request, item_id: Union[ObjectID, str]) -> Optional[dict]:
+async def process_item_request(
+    request: Request, item_id: Union[ObjectID, str]
+) -> Optional[dict]:
     methods = {"GET": get_item, "DELETE": delete_item, "PUT": put_item}
     if request.method not in methods:
         raise HTTPException(405)
@@ -90,6 +92,7 @@ async def process_item_request(request: Request, item_id: Union[ObjectID, str]) 
         raise e
     return res
 
+
 def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create item endpoint"""
 
@@ -97,6 +100,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
         # no schema validation on GET request
         # TODO: DELETE needs if-match header?
         if resource.alt_id:
+
             async def item_endpoint_with_alt_id(
                 request: Request,
                 item_id: Union[ObjectID, str] = Path(
@@ -107,6 +111,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
             return item_endpoint_with_alt_id
         else:
+
             async def item_endpoint(
                 request: Request,
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
@@ -117,24 +122,26 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     elif method == "PUT":
         schema = resource.schema
         if resource.alt_id:
+
             async def put_item_endpoint_with_alt_id(
                 request: Request,
-                schema: schema,
+                schema: schema,  # type: ignore
                 item_id: Union[ObjectID, str] = Path(
                     ..., alias=f"{resource.item_name}_id"
-                )
+                ),
             ) -> Optional[dict]:
-                setattr(request, "payload", schema.dict())
+                setattr(request, "payload", schema.dict())  # type: ignore
                 return await process_item_request(request, item_id)
 
             return put_item_endpoint_with_alt_id
         else:
+
             async def put_item_endpoint(
                 request: Request,
-                schema: schema,
-                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id")
+                schema: schema,  # type: ignore
+                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
             ) -> Optional[dict]:
-                setattr(request, "payload", schema.dict())
+                setattr(request, "payload", schema.dict())  # type: ignore
                 return await process_item_request(request, item_id)
 
             return put_item_endpoint

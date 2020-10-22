@@ -146,15 +146,16 @@ class Mongo(DataLayer):
             raise e
 
     async def remove_item(self, resource: Resource, item_id: ObjectID) -> None:
-        """Removes a single document from a database collection.
-        """
+        """Removes a single document from a database collection."""
         collection = await self.get_collection(resource)
         try:
             result = await collection.delete_one({"_id": item_id})
         except Exception as e:
             raise e
-    
-    async def replace_item(self, resource: Resource, item_id: ObjectID, payload: dict) -> None:
+
+    async def replace_item(
+        self, resource: Resource, item_id: ObjectID, payload: dict
+    ) -> dict:
         """Replaces single document from a database collection"""
         collection = await self.get_collection(resource)
         try:
