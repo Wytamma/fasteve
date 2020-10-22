@@ -52,8 +52,8 @@ HTTP/1.1 200
 
 Features (TODO)
 ---------------
-* Emphasis on REST
-* Full range of CRUD operations
+* Emphasis on REST ✅
+* Full range of CRUD operations ✅
 * Customizable resource endpoints ✅
 * Sub Resources ✅
 * Customizable, multiple item endpoints
@@ -106,5 +106,5 @@ Latest Changes
 
 * :bug: PUT does upsert when ID not found. PR [#14](https://github.com/Wytamma/fasteve/pull/14) by [@Wytamma](https://github.com/Wytamma).
 * :art: PUT returns 204 (No Content). PR [#13](https://github.com/Wytamma/fasteve/pull/13) by [@Wytamma](https://github.com/Wytamma).
-* Add PUT method. PR [#12](https://github.com/Wytamma/fasteve/pull/12) by [@Wytamma](https://github.com/Wytamma).
+* :sparkle: Add PUT method. PR [#12](https://github.com/Wytamma/fasteve/pull/12) by [@Wytamma](https://github.com/Wytamma).
 * :art: Formatting with Black. PR [#11](https://github.com/Wytamma/fasteve/pull/11) by [@Wytamma](https://github.com/Wytamma).
