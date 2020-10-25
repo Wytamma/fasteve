@@ -54,9 +54,8 @@ class Fasteve(FastAPI):
 
         self.data = data(app=self)  # eve pattern
 
-        if type(self.data) == Mongo:
-            for resource in self.resources:
-                self.create_mongo_index(resource)
+        for resource in self.resources:
+            self.create_mongo_index(resource)
 
         for resource in self.resources:
             self.register_resource(resource)
