@@ -69,6 +69,7 @@ class Fasteve(FastAPI):
 
         # check models for data relations
         resource.schema = self._embed_data_relation(resource.schema)
+        resource.schema.__config__.extra = "forbid"  #TODO: this should be on the InSchema
         resource.response_model = self._embed_data_relation(
             resource.response_model, response=True
         )
