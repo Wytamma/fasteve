@@ -37,7 +37,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
         async def get_endpoint(
             request: Request, max_results: int = 25, page: int = 1, embedded: str = "{}"
         ) -> dict:
-            return await process_collections_request(request)
+            response = await process_collections_request(request)
+            await request.app.events.run('after_fetch_resource', resource.name, response)
+            return response
 
         return get_endpoint
 
@@ -55,7 +57,10 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             )
 
             setattr(request, "payload", payload)
-            return await process_collections_request(request)
+            await request.app.events.run('before_insert_items', resource.name, payload)
+            response = await process_collections_request(request)
+            await request.app.events.run('after_insert_items', resource.name, response)
+            return response
 
         return post_endpoint
 

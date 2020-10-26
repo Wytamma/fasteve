@@ -58,7 +58,9 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
                 request: Request,
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
             ) -> Optional[dict]:
-                return await process_item_request(request, item_id)
+                response = await process_item_request(request, item_id)
+                await request.app.events.run('after_fetch_item', resource.name, response)
+                return response
 
             return item_endpoint
     elif method in ["PUT", "PATCH"]:

@@ -29,8 +29,8 @@ class ResourceMiddleware(BaseHTTPMiddleware):
             resource = None
         request.state.resource = resource
         if resource:
-            await request.app.events.run_before(request)
+            await request.app.events.run_before_request(request)
         response = await call_next(request)
         if resource:
-            await request.app.events.run_after(request, response)
+            await request.app.events.run_after_request(request, response)
         return response
