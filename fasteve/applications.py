@@ -54,9 +54,8 @@ class Fasteve(FastAPI):
 
         self.data = data(app=self)  # eve pattern
 
-        if type(self.data) == Mongo:
-            for resource in self.resources:
-                self.create_mongo_index(resource)
+        for resource in self.resources:
+            self.create_mongo_index(resource)
 
         for resource in self.resources:
             self.register_resource(resource)
@@ -70,6 +69,7 @@ class Fasteve(FastAPI):
 
         # check models for data relations
         resource.schema = self._embed_data_relation(resource.schema)
+        resource.schema.__config__.extra = "forbid"  #TODO: this should be on the InSchema
         resource.response_model = self._embed_data_relation(
             resource.response_model, response=True
         )

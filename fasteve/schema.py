@@ -8,7 +8,6 @@ json_encoders = {ObjectId: lambda x: str(x)}
 class BaseSchema(BaseModel):
     class Config:
         json_encoders = json_encoders
-        extra = "forbid"
 
 
 class MetaModel(BaseModel):
