@@ -13,9 +13,9 @@ Fasteve is Simple
 
 Create a file `main.py` with:
 ```python
-from fasteve import Fasteve, BaseSchema, Resource
+from fasteve import Fasteve, BaseModel, Resource
 
-class People(BaseSchema):
+class People(BaseModel):
     name: str
 
 people = Resource(schema=People)

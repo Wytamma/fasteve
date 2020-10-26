@@ -1,5 +1,5 @@
 from .applications import Fasteve
-from .schema import BaseSchema
+from .schema import BaseSchema as BaseModel
 from .resource import Resource, SubResource
 from .core.utils import ObjectID
 from fastapi import Response
