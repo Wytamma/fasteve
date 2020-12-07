@@ -1,13 +1,11 @@
 from starlette.requests import Request
-from fasteve.methods import get, post, get_item, delete, delete_item, put_item, patch_item
+from fasteve.methods import delete_item, get_item, patch_item, put_item
 from fastapi import HTTPException
-from fasteve.core import config
 from fastapi import Path
-from typing import Callable, List, Union, Optional
-from fasteve.resource import Resource, SubResource
-from fasteve.core.utils import log, ObjectID
+from typing import Callable, Optional, Union
+from fasteve.resource import Resource
+from fasteve.core.utils import ObjectID
 from pymongo.errors import DuplicateKeyError, BulkWriteError
-from copy import deepcopy
 from fasteve.io.mongo.utils import render_pymongo_error
 
 
@@ -59,7 +57,9 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
                 item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
             ) -> Optional[dict]:
                 response = await process_item_request(request, item_id)
-                await request.app.events.run('after_fetch_item', resource.name, response)
+                await request.app.events.run(
+                    "after_fetch_item", resource.name, response
+                )
                 return response
 
             return item_endpoint
@@ -67,7 +67,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
         schema = resource.schema
         if method == "PATCH":
             schema = type(
-                "schema",
+                schema.__name__,
                 (schema,),
                 {},
             )

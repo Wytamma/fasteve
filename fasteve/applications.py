@@ -22,7 +22,6 @@ import asyncio
 import logging
 
 
-
 class Fasteve(FastAPI):
     def __init__(
         self,
@@ -33,7 +32,6 @@ class Fasteve(FastAPI):
 
         super().__init__()  # Initialise FastAPI super class
 
-        
         # set defaults
         self.cors_origins = cors_origins
 
@@ -43,12 +41,10 @@ class Fasteve(FastAPI):
 
         self._validate_config(config)
         self.config = config
-        
+
         self._register_resource_middleware()
         self._register_CORS_middleware()
         self._register_home_endpoint()
-
-        
 
         # connect to db
         MongoClient.connect()
@@ -57,16 +53,15 @@ class Fasteve(FastAPI):
 
         for resource in self.resources:
             self.create_mongo_index(resource)
-        
+
         for resource in self.resources:
             self.register_resource(resource)
-        
+
         self.events = Events(resources)
         self.router.add_event_handler = self.add_event_handler
         self.add_event_handler(
             "shutdown", MongoClient.close
         )  # this can't be in the application layer i.e. needs to come from data layer
-
 
     def add_event_handler(self, event_type: str, func: Callable) -> None:
         print(event_type)
@@ -81,7 +76,6 @@ class Fasteve(FastAPI):
             except Exception as e:
                 raise e
 
-
     @log
     def register_resource(self, resource: Resource) -> None:
         print(f"Registering Resource: {resource.name}")
@@ -91,7 +85,9 @@ class Fasteve(FastAPI):
 
         # check models for data relations
         resource.schema = self._embed_data_relation(resource.schema)
-        resource.schema.__config__.extra = "forbid"  #TODO: this should be on the InSchema
+        resource.schema.__config__.extra = (
+            "forbid"  # TODO: this should be on the InSchema
+        )
         resource.response_model = self._embed_data_relation(
             resource.response_model, response=True
         )
@@ -187,6 +183,8 @@ class Fasteve(FastAPI):
         self, resource: Resource, field_name: str
     ) -> None:
         collection = await self.data.get_collection(resource)
+        # TODO: index should be removed at some point...
+        # or at least check to see if there is one already
         res = await collection.create_index(field_name, unique=True)  # type: ignore # TODO: move to data layer
         print(f"Created unique index for {field_name} in {resource.name}")
 

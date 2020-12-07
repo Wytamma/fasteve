@@ -1,6 +1,5 @@
 from starlette.requests import Request
 from datetime import datetime
-from fasteve.methods.post import post
 from fasteve.methods.common import get_document
 from typing import Union
 from fasteve.core.utils import ObjectID

@@ -1,13 +1,10 @@
 from starlette.requests import Request
-from fasteve.methods import get, post, get_item, delete, delete_item, put_item, patch_item
+from fasteve.methods import delete, get, post
 from fastapi import HTTPException
-from fasteve.core import config
-from fastapi import Path
-from typing import Callable, List, Union, Optional
-from fasteve.resource import Resource, SubResource
-from fasteve.core.utils import log, ObjectID
+from typing import Callable, List, Union
+from fasteve.resource import Resource
+from fasteve.core.utils import log
 from pymongo.errors import DuplicateKeyError, BulkWriteError
-from copy import deepcopy
 from fasteve.io.mongo.utils import render_pymongo_error
 
 
@@ -38,7 +35,9 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             request: Request, max_results: int = 25, page: int = 1, embedded: str = "{}"
         ) -> dict:
             response = await process_collections_request(request)
-            await request.app.events.run('after_fetch_resource', resource.name, response)
+            await request.app.events.run(
+                "after_fetch_resource", resource.name, response
+            )
             return response
 
         return get_endpoint
@@ -53,13 +52,13 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             payload = (
                 [schema.dict() for schema in schema]  # type: ignore
                 if type(schema) == list
-                else schema.dict()  # type: ignore
+                else [schema.dict()]  # type: ignore
             )
 
             setattr(request, "payload", payload)
-            await request.app.events.run('before_insert_items', resource.name, payload)
+            await request.app.events.run("before_insert_items", resource.name, payload)
             response = await process_collections_request(request)
-            await request.app.events.run('after_insert_items', resource.name, response)
+            await request.app.events.run("after_insert_items", resource.name, response)
             return response
 
         return post_endpoint

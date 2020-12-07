@@ -39,6 +39,7 @@ class Resource:
 
 @dataclass
 class SubResource:
+    # sub resource should set the id on the parent automajically
     resource: Resource
     id_field: str
     name: Optional[str] = None

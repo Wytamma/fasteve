@@ -6,12 +6,16 @@ from ..core import config
 async def post(request: Request) -> dict:
 
     payload = getattr(request, "payload")
+
     now = datetime.now()
 
-    if type(payload) == list:
-        for item in payload:
-            item["_created"] = now
-            item["_updated"] = now
+    print(payload)
+
+    for item in payload:
+        item["_created"] = now
+        item["_updated"] = now
+
+    if len(payload) > 1:
         try:
             # TODO: bulk insert
             documents = await request.app.data.insert_many(
@@ -20,9 +24,8 @@ async def post(request: Request) -> dict:
         except Exception as e:
             raise e
     else:
-        payload["_created"] = now
-        payload["_updated"] = now
         try:
+            payload = payload[0]
             document = await request.app.data.insert(request.state.resource, payload)
             documents = [document]
         except Exception as e:
