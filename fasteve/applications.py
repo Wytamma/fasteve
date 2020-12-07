@@ -64,7 +64,6 @@ class Fasteve(FastAPI):
         )  # this can't be in the application layer i.e. needs to come from data layer
 
     def add_event_handler(self, event_type: str, func: Callable) -> None:
-        print(event_type)
         if event_type == "startup":
             self.router.on_startup.append(func)
         elif event_type == "shutdown":

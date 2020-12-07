@@ -20,13 +20,6 @@ class UserOut(BaseSchema):
     full_name: Optional[str] = None
 
 
-class UserInDB(BaseSchema):
-    username: str
-    hashed_password: str
-    email: EmailStr
-    full_name: Optional[str] = None
-
-
 users = Resource(
     schema=UserIn,
     name='users',
@@ -50,6 +43,12 @@ async def after_fetch_resource_callback(response: dict):
 
 def fake_password_hasher(raw_password: str):
     return "supersecret" + raw_password
+
+class UserInDB(BaseSchema):
+    username: str
+    hashed_password: str
+    email: EmailStr
+    full_name: Optional[str] = None
 
 def user_in_db_rep(user_in):
     hashed_password = fake_password_hasher(user_in['password'])

@@ -8,9 +8,7 @@ from fastapi import Response
 
 async def patch_item(request: Request, item_id: Union[ObjectID, str]) -> Response:
     orginal_document = await get_document(request, item_id)
-    print(orginal_document)
     payload = getattr(request, "payload")
-    print(payload)
     now = datetime.now()
     payload["_created"] = orginal_document["_created"]
     payload["_updated"] = now

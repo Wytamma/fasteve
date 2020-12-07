@@ -18,7 +18,6 @@ def log(func: Callable) -> Callable:
     def wrapper(*args: Any, **kwargs: Any) -> Callable:
         ", ".join([str(arg) for arg in args])
         keywords = ", ".join([f"{k}={str(v)}" for k, v in kwargs.items()])
-        # print(f"LOG: {func.__name__}({arugemnts}, {keywords})")
         return func(*args, **kwargs)
 
     return wrapper

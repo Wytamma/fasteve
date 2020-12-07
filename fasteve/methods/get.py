@@ -40,7 +40,6 @@ async def get(request: Request) -> dict:
         try:
             query[sub_resource.id_field] = ObjectID.validate(item_id)
         except ValueError:
-            print(sub_resource)
             lookup = {}
             lookup["from"] = resource.name
             lookup["localField"] = sub_resource.id_field

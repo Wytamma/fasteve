@@ -9,7 +9,6 @@ from fastapi import Response
 
 async def put_item(request: Request, item_id: Union[ObjectID, str]) -> Response:
     orginal_document = await get_document(request, item_id)
-    print(orginal_document)
     payload = getattr(request, "payload")
 
     if not orginal_document:

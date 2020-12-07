@@ -9,8 +9,6 @@ async def post(request: Request) -> dict:
 
     now = datetime.now()
 
-    print(payload)
-
     for item in payload:
         item["_created"] = now
         item["_updated"] = now
