@@ -104,6 +104,7 @@ distributed under the `BSD license`
 Latest Changes
 -
 
+* :sparkles: Add event hooks. PR [#17](https://github.com/Wytamma/fasteve/pull/17) by [@Wytamma](https://github.com/Wytamma).
 * :sparkles: break up endpoints. PR [#16](https://github.com/Wytamma/fasteve/pull/16) by [@Wytamma](https://github.com/Wytamma).
 * :sparkles: Add PATCH method. PR [#15](https://github.com/Wytamma/fasteve/pull/15) by [@Wytamma](https://github.com/Wytamma).
 * :bug: PUT does upsert when ID not found. PR [#14](https://github.com/Wytamma/fasteve/pull/14) by [@Wytamma](https://github.com/Wytamma).
