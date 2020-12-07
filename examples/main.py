@@ -28,8 +28,8 @@ leader = Resource(schema=Leader, resource_methods=["GET", "POST", "DELETE"])
 
 
 class Countries(BaseSchema):
-    name: Unique(str)
-    leader: ObjectID = DataRelation(leader)
+    name: Unique[str]
+    # leader: DataRelation = leader
 
 
 data_sub_resource = SubResource(resource=data, id_field="country_id", name="data")

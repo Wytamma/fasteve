@@ -1,7 +1,6 @@
 from fasteve import Fasteve, BaseSchema, Resource
 from starlette.testclient import TestClient
 import pytest
-from pytest import fixture
 from fasteve.io.mongo import MongoClient
 from bson import ObjectId
 
@@ -21,28 +20,20 @@ resources = [people]
 
 app = Fasteve(resources=resources)
 
-
-@fixture(scope="session")
-def test_user():
-    return {
-        "user": {
-            "email": "user1@example.com",
-            "password": "string1",
-            "username": "string1",
-        }
-    }
+app.config.MONGODB_DATABASE = "testing"
 
 
-@fixture(scope="session")
-def test_client(test_user):
-    app.config.MONGODB_DATABASE = "testing"
-    with TestClient(app) as test_client:
-        yield test_client
+test_client = TestClient(app)
 
+
+@pytest.fixture(autouse=True, scope="session")
+def drop_test_database():
+    yield
     import asyncio
 
     db = asyncio.run(MongoClient.get_database())
     db.drop_database(app.config.MONGODB_DATABASE)
+    db.close()
 
 
 @pytest.mark.parametrize(
@@ -64,7 +55,7 @@ def test_client(test_user):
         ("/nonexistent", 404, {"detail": "Not Found"}),
     ],
 )
-def test_get_path(test_client, path, expected_status, expected_response):
+def test_get_path(path, expected_status, expected_response):
     response = test_client.get(path)
     assert response.status_code == expected_status
     assert response.json() == expected_response
@@ -76,7 +67,7 @@ def test_get_path(test_client, path, expected_status, expected_response):
         ("/people", {"name": "Curie"}, 201, {"name": "Curie"}),
     ],
 )
-def test_insert(test_client, path, data, expected_status, expected_response):
+def test_insert(path, data, expected_status, expected_response):
     response = test_client.post(path, json=data)
     assert response.status_code == expected_status
     # what's the correct response?
@@ -103,7 +94,7 @@ def test_insert(test_client, path, data, expected_status, expected_response):
         ),
     ],
 )
-def test_bulk_insert(test_client, path, data, expected_status, expected_response):
+def test_bulk_insert(path, data, expected_status, expected_response):
     response = test_client.post(path, json=data)
     assert response.status_code == expected_status
     result = [{"name": person["name"]} for person in response.json()[app.config.DATA]]
@@ -116,7 +107,7 @@ def test_bulk_insert(test_client, path, data, expected_status, expected_response
         ("/people", {"name": "Curie"}, 200),
     ],
 )
-def test_get_item(test_client, path, data, expected_status):
+def test_get_item(path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
     response.json()[app.config.DATA][0]
     item_id = response.json()[app.config.DATA][0]["_id"]
@@ -131,7 +122,7 @@ def test_get_item(test_client, path, data, expected_status):
         ("/people", {"name": "Curie"}, 204),
     ],
 )
-def test_delete_path(test_client, path, data, expected_status):
+def test_delete_path(path, data, expected_status):
     _ = test_client.post(path, json=data)  # insert data for test
     response = test_client.delete(path)
     assert response.status_code == expected_status
@@ -145,7 +136,7 @@ def test_delete_path(test_client, path, data, expected_status):
         ("/people", {"name": "Curie"}, 204),
     ],
 )
-def test_delete_item(test_client, path, data, expected_status):
+def test_delete_item(path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
     item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.delete(path + f"/{item_id}")
@@ -160,7 +151,7 @@ def test_delete_item(test_client, path, data, expected_status):
         ("/people", {"name": "Lovelace"}, 204),
     ],
 )
-def test_put_replace_item(test_client, path, data, expected_status):
+def test_put_replace_item(path, data, expected_status):
     response = test_client.post(path, json={"name": "Curie"})  # insert data for test
     item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.put(path + f"/{item_id}", json=data)
@@ -177,7 +168,7 @@ def test_put_replace_item(test_client, path, data, expected_status):
         ("/people", {"name": "Lovelace"}, 204),
     ],
 )
-def test_put_insert_item(test_client, path, data, expected_status):
+def test_put_insert_item(path, data, expected_status):
     item_id = str(ObjectId())
     response = test_client.put(path + f"/{item_id}", json=data)
     assert response.status_code == expected_status
@@ -194,7 +185,7 @@ def test_put_insert_item(test_client, path, data, expected_status):
         ("/people", {"name": "Lovelace"}, 204),
     ],
 )
-def test_patch_item(test_client, path, data, expected_status):
+def test_patch_item(path, data, expected_status):
     response = test_client.post(path, json={"name": "Curie"})  # insert data for test
     item_id = response.json()[app.config.DATA][0]["_id"]
     response = test_client.patch(path + f"/{item_id}", json=data)

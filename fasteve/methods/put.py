@@ -17,7 +17,7 @@ async def put_item(request: Request, item_id: Union[ObjectID, str]) -> Response:
         if ObjectID.is_valid(item_id):
             payload["_id"] = item_id
         # if it is not valid must be an alt_id
-        setattr(request, "payload", payload)
+        setattr(request, "payload", [payload])  # post expects a list
         await post(request)
         return Response(status_code=204)
 

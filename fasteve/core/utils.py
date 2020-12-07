@@ -24,7 +24,7 @@ def log(func: Callable) -> Callable:
     return wrapper
 
 
-class ObjectID(str):
+class ObjectID(str):  # TODO: rename as ObjectId
     @classmethod
     def __get_validators__(cls) -> Generator:
         yield cls.validate
@@ -47,8 +47,8 @@ def is_new_type(type_: Type[Any]) -> bool:
     """
     Check whether type_ was created using typing.NewType
     """
-    #isinstance(type_, test_type.__class__) and hasattr(type_, "__supertype__") 
-    return type_.__name__ == 'Unique'
+    # isinstance(type_, test_type.__class__) and hasattr(type_, "__supertype__")
+    return type_.__name__ == "Unique"
 
 
 NoArgsNoReturnFuncT = Callable[[], None]
@@ -67,7 +67,7 @@ def repeat_every(
     max_repetitions: Optional[int] = None,
 ) -> NoArgsNoReturnDecorator:
     """
-    This function was written by @dmontagu for this excellent FastAPI Package fastapi-utils. Please go check it out and support this work!
+    This function was written by @dmontagu for the excellent FastAPI Package fastapi-utils. Please go check it out and support this work!
 
     This function returns a decorator that modifies a function so it is periodically re-executed after its first call.
     The function it decorates should accept no arguments and return nothing. If necessary, this can be accomplished

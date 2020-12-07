@@ -1,14 +1,15 @@
 from starlette.requests import Request
-from fasteve.methods import get, post, get_item, delete, delete_item, put_item, patch_item
+from fasteve.methods import delete, get, post
 from fastapi import HTTPException
 from fasteve.core import config
 from fastapi import Path
-from typing import Callable, List, Union, Optional
+from typing import Callable, Optional, Union
 from fasteve.resource import Resource, SubResource
 from fasteve.core.utils import log, ObjectID
+from fasteve.endpoints.documents import process_item_request
 from pymongo.errors import DuplicateKeyError, BulkWriteError
-from copy import deepcopy
 from fasteve.io.mongo.utils import render_pymongo_error
+
 
 @log
 async def process_subresource_request(

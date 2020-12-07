@@ -8,6 +8,7 @@ from .endpoints import (
     subresource_endpoint_factory,
 )
 from .core import config
+from .events import Events
 from .schema import BaseResponseSchema, BaseSchema, ItemBaseResponseSchema
 from typing import List, Type, Optional, Union, Callable
 from types import ModuleType
@@ -48,10 +49,6 @@ class Fasteve(FastAPI):
         # connect to db
         MongoClient.connect()
 
-        self.add_event_handler(
-            "shutdown", MongoClient.close
-        )  # this can't be in the application layer i.e. needs to come from data layer
-
         self.data = data(app=self)  # eve pattern
 
         for resource in self.resources:
@@ -59,6 +56,25 @@ class Fasteve(FastAPI):
 
         for resource in self.resources:
             self.register_resource(resource)
+
+        self.events = Events(resources)
+        setattr(self.router, "add_event_handler", self.add_event_handler)
+        self.add_event_handler(
+            "shutdown", MongoClient.close
+        )  # this can't be in the application layer i.e. needs to come from data layer
+
+    def add_event_handler(self, event_type: str, func: Callable) -> None:
+        print(event_type)
+        if event_type == "startup":
+            self.router.on_startup.append(func)
+        elif event_type == "shutdown":
+            self.router.on_shutdown.append(func)
+        else:
+            # Event Hooks
+            try:
+                getattr(self.events, event_type).append(func)
+            except Exception as e:
+                raise e
 
     @log
     def register_resource(self, resource: Resource) -> None:
@@ -69,7 +85,9 @@ class Fasteve(FastAPI):
 
         # check models for data relations
         resource.schema = self._embed_data_relation(resource.schema)
-        resource.schema.__config__.extra = "forbid"  #TODO: this should be on the InSchema
+        resource.schema.__config__.extra = (  # type: ignore
+            "forbid"  # type: ignore # TODO: this should be on the InSchema
+        )
         resource.response_model = self._embed_data_relation(
             resource.response_model, response=True
         )
@@ -165,6 +183,8 @@ class Fasteve(FastAPI):
         self, resource: Resource, field_name: str
     ) -> None:
         collection = await self.data.get_collection(resource)
+        # TODO: index should be removed at some point...
+        # or at least check to see if there is one already
         res = await collection.create_index(field_name, unique=True)  # type: ignore # TODO: move to data layer
         print(f"Created unique index for {field_name} in {resource.name}")
 

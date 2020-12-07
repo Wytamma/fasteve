@@ -18,6 +18,7 @@ fastapi = "*"
 uvicorn = "*"
 motor = "*"
 email-validator = "*"
+pandas = "*"
 
 [requires]
 python_version = "3"
