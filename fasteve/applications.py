@@ -58,7 +58,7 @@ class Fasteve(FastAPI):
             self.register_resource(resource)
 
         self.events = Events(resources)
-        self.router.add_event_handler = self.add_event_handler
+        setattr(self.router, "add_event_handler", self.add_event_handler)
         self.add_event_handler(
             "shutdown", MongoClient.close
         )  # this can't be in the application layer i.e. needs to come from data layer
@@ -85,8 +85,8 @@ class Fasteve(FastAPI):
 
         # check models for data relations
         resource.schema = self._embed_data_relation(resource.schema)
-        resource.schema.__config__.extra = (
-            "forbid"  # TODO: this should be on the InSchema
+        resource.schema.__config__.extra = (  # type: ignore
+            "forbid"  # type: ignore # TODO: this should be on the InSchema
         )
         resource.response_model = self._embed_data_relation(
             resource.response_model, response=True

@@ -6,6 +6,7 @@ from fastapi import Path
 from typing import Callable, Optional, Union
 from fasteve.resource import Resource, SubResource
 from fasteve.core.utils import log, ObjectID
+from fasteve.endpoints.documents import process_item_request
 from pymongo.errors import DuplicateKeyError, BulkWriteError
 from fasteve.io.mongo.utils import render_pymongo_error
 
