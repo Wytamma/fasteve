@@ -1,5 +1,6 @@
-![fasteve logo](images/fasteve-logo.png)
+![fasteve logo](https://i.ibb.co/Czrk2L9/fasteve-logo.png)
 
+[![PyPi](https://img.shields.io/pypi/v/fasteve.svg)](https://pypi.org/project/fasteve/)
 [![Test](https://github.com/Wytamma/fasteve/workflows/Test/badge.svg)](https://github.com/Wytamma/fasteve/actions?query=workflow%3ATest)
 [![coverage](https://codecov.io/gh/Wytamma/fasteve/branch/master/graph/badge.svg)](https://codecov.io/gh/Wytamma/fasteve)
 [![Lint](https://github.com/Wytamma/fasteve/workflows/Lint/badge.svg)](https://github.com/Wytamma/fasteve/actions?query=workflow%3ALint)
