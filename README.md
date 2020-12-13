@@ -1,4 +1,4 @@
-![histological image](images/fasteve-logo.png)
+![fasteve logo](images/fasteve-logo.png)
 
 [![Test](https://github.com/Wytamma/fasteve/workflows/Test/badge.svg)](https://github.com/Wytamma/fasteve/actions?query=workflow%3ATest)
 [![coverage](https://codecov.io/gh/Wytamma/fasteve/branch/master/graph/badge.svg)](https://codecov.io/gh/Wytamma/fasteve)
