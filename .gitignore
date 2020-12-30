@@ -7,3 +7,6 @@ coverage.xml
 .vscode
 .pytest_cache
 Notes.md
+build/
+dist/
+fasteve.egg-info/
