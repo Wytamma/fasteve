@@ -57,44 +57,44 @@ Features (TODO)
 * Full range of CRUD operations ✅
 * Customizable resource endpoints ✅
 * Sub Resources ✅
-* Customizable, multiple item endpoints
-* Filtering and Sorting
 * Pagination ✅
 * HATEOAS ✅
-* JSON and XML Rendering
-* Conditional Requests
-* Data Integrity and Concurrency Control
 * Bulk Inserts ✅
 * Data Validation ✅
 * Extensible Data Validation ✅
 * Unique Fields ✅
+* CORS Cross-Origin Resource Sharing ✅
+* Read-only by default ✅
+* Default Values ✅
+* Embedded Resource Serialization ✅
+* Event Hooks ✅
+* Custom ID Fields ✅
+* Alternative ID Fields ✅
+* Interactive API docs (provided by Swagger UI) ✅
+* Alternative API docs (provided by ReDoc) ✅
+* Repeated Background Tasks ✅
+* MongoDB Support ✅
+* Powered by FastAPI ✅
+* Predefined Database Filters
+* Projections
+* JSONP
+* Customizable, multiple item endpoints
+* Filtering and Sorting
+* JSON and XML Rendering
+* Conditional Requests
+* Data Integrity and Concurrency Control
 * Resource-level Cache Control
 * API Versioning
 * Document Versioning
 * Authentication
-* CORS Cross-Origin Resource Sharing ✅
-* JSONP
-* Read-only by default ✅
-* Default Values ✅
-* Predefined Database Filters
-* Projections
-* Embedded Resource Serialization ✅
-* Event Hooks ✅
 * Rate Limiting
-* Custom ID Fields ✅
-* Alternative ID Fields ✅
 * File Storage
 * GeoJSON
 * Internal Resources
 * Enhanced Logging
 * Operations Log
-* Interactive API docs (provided by Swagger UI) ✅
-* Alternative API docs (provided by ReDoc) ✅
-* Repeated Background Tasks ✅
 * MongoDB Aggregation Framework
-* MongoDB Support ✅
 * SQL Support
-* Powered by FastAPI ✅
 
 License
 -------
