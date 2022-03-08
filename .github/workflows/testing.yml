@@ -35,7 +35,6 @@ jobs:
     steps:
       - uses: jpetrucciani/mypy-check@master
         with:
-          path: 'fasteve'
           mypy_flags: '--disallow-untyped-defs'
   test:
     needs: mypy
