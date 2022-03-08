@@ -32,10 +32,9 @@ jobs:
   mypy:
     runs-on: ubuntu-latest
     steps:
-      # or specify additional mypy flags!
-      uses: jpetrucciani/mypy-check@master
-      with:
-        mypy_flags: 'fasteve --disallow-untyped-defs'
+      - uses: jpetrucciani/mypy-check@master
+        with:
+          mypy_flags: 'fasteve --disallow-untyped-defs'
   test:
     needs: linting
     strategy:
