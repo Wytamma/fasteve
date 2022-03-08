@@ -3,7 +3,7 @@
 [![PyPi](https://img.shields.io/pypi/v/fasteve.svg)](https://pypi.org/project/fasteve/)
 [![testing](https://github.com/Wytamma/fasteve/actions/workflows/testing.yml/badge.svg)](https://github.com/Wytamma/fasteve/actions/workflows/testing.yml)
 [![coverage](https://codecov.io/gh/Wytamma/fasteve/branch/master/graph/badge.svg)](https://codecov.io/gh/Wytamma/fasteve)
-[![image](https://img.shields.io/github/license/wytamma/fasteve.svg)](https://img.shields.io/github/license/wytamma/fasteve)
+[![image](https://img.shields.io/github/license/wytamma/fasteve.svg)](https://github.com/Wytamma/fasteve/blob/master/LICENSE)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 Fasteve is a rebuild of [Eve](https://github.com/pyeve/eve) using [FastAPI](https://github.com/tiangolo/fastapi) as a base.
