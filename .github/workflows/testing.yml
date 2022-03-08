@@ -110,7 +110,7 @@ jobs:
       #    run test suite and output coverage file   
       #----------------------------------------------
       - name: Test with pytest
-        run: poetry run pytest --cov=pybeast --cov-report=xml
+        run: poetry run pytest --cov=fasteve --cov-report=xml
       #----------------------------------------------
       #             upload coverage stats              
       # (requires CODECOV_TOKEN in repository secrets)   
