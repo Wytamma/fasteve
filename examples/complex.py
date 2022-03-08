@@ -29,7 +29,7 @@ class UserInDB(BaseSchema):
 
 users = Resource(
     schema=UserIn,
-    name='users',
+    name="users",
     resource_methods=["GET", "POST", "DELETE", "HEAD"],
     response_model=UserOut,
     item_methods=["GET", "DELETE", "PUT", "PATCH"],
@@ -40,21 +40,26 @@ resources = [users]
 
 app = Fasteve(resources=resources, cors_origins=["*"])
 
+
 @app.on_event("before_GET_users")
 async def before_GET_users_callback(request: Request):
     print(f"LOG: {request.url}")
 
+
 @app.on_event("after_fetch_resource_users")
 async def after_fetch_resource_callback(response: dict):
-    print(response) 
+    print(response)
+
 
 def fake_password_hasher(raw_password: str):
     return "supersecret" + raw_password
 
+
 def user_in_db_rep(user_in):
-    hashed_password = fake_password_hasher(user_in['password'])
+    hashed_password = fake_password_hasher(user_in["password"])
     user_in_db = UserInDB(**user_in, hashed_password=hashed_password)
     return user_in_db.dict()
+
 
 @app.on_event("before_insert_items_users")
 async def before_insert_callback(items: List[dict]):
@@ -63,9 +68,11 @@ async def before_insert_callback(items: List[dict]):
         item.clear()
         item.update(user_in_db_dict)
 
+
 @app.on_event("after_insert_items_users")
 async def before_insert_callback(response: dict):
     print(response)
+
 
 @app.on_event("before_replace_item_users")
 async def before_insert_callback(items: List[dict]):
@@ -74,10 +81,7 @@ async def before_insert_callback(items: List[dict]):
         item.clear()
         item.update(user_in_db_dict)
 
+
 @app.on_event("after_replace_item_users")
 async def before_insert_callback(response: dict):
     print(response)
-
-
-
-

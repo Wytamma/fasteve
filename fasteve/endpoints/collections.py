@@ -16,7 +16,7 @@ async def process_collections_request(request: Request) -> dict:
     try:
         res = await methods[request.method](request)
         return res
-    except DuplicateKeyError as e:
+    except DuplicateKeyError as e:  # TODO: move these errors into the datalayer and catch a general Fasteve.DatabaseError
         msg = render_pymongo_error(e.details)
         raise HTTPException(422, msg)
     except BulkWriteError as e:

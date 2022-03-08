@@ -109,23 +109,23 @@ def test_shutdown():
 
 def test_request_events():
     with TestClient(app) as test_client:
-        response = test_client.get("/people")
+        _ = test_client.get("/people")
         data = {"name": "Curie"}
-        response = test_client.post("/people", json=data)
+        _ = test_client.post("/people", json=data)
         test_client.delete("/people")
 
-        assert "before_GET_people" in events
-        assert "before_POST_people" in events
-        assert "before_DELETE_people" in events
+    assert "before_GET_people" in events
+    assert "before_POST_people" in events
+    assert "before_DELETE_people" in events
 
-        assert "before_GET" in events
-        assert "before_POST" in events
-        assert "before_DELETE" in events
+    assert "before_GET" in events
+    assert "before_POST" in events
+    assert "before_DELETE" in events
 
-        assert "after_GET_people" in events
-        assert "after_POST_people" in events
-        assert "after_DELETE_people" in events
+    assert "after_GET_people" in events
+    assert "after_POST_people" in events
+    assert "after_DELETE_people" in events
 
-        assert "after_GET" in events
-        assert "after_POST" in events
-        assert "after_DELETE" in events
+    assert "after_GET" in events
+    assert "after_POST" in events
+    assert "after_DELETE" in events

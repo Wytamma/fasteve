@@ -28,7 +28,7 @@ leader = Resource(schema=Leader, resource_methods=["GET", "POST", "DELETE"])
 
 
 class Countries(BaseSchema):
-    name: Unique[str]
+    name: Unique(str)
     # leader: DataRelation = leader
 
 

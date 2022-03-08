@@ -4,5 +4,4 @@ from .endpoints import (
     process_subresource_request,
     subresource_endpoint_factory,
     home_endpoint,
-    me_endpoint,
 )

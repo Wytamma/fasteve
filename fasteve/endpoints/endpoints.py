@@ -3,6 +3,7 @@ from fasteve.methods import delete, get, post
 from fastapi import HTTPException
 from fasteve.core import config
 from fastapi import Path
+from fastapi.responses import JSONResponse
 from typing import Callable, Optional, Union
 from fasteve.resource import Resource, SubResource
 from fasteve.core.utils import log, ObjectID
@@ -64,22 +65,11 @@ def subresource_endpoint_factory(
         raise Exception(f'"{method}" is an invalid HTTP method')
 
 
-def home_endpoint(request: Request) -> dict:
+async def home_endpoint(request: Request) -> JSONResponse:
     response = {}
     if config.HATEOAS:  # move to repare response function
         links = []
         for resource in request.app.resources:
             links.append({"href": f"/{resource.name}", "title": f"{resource.name}"})
         response[config.LINKS] = {"child": links}
-    return response
-
-
-def me_endpoint(request: Request) -> dict:
-    """for auth / user info"""
-    response = {}
-    if config.HATEOAS:  # move to prepare response function
-        links = []
-        for resource in request.app.resources:
-            links.append({"href": f"/{resource.name}", "title": f"{resource.name}"})
-        response[config.LINKS] = {"child": links}
-    return response
+    return JSONResponse(content=response)

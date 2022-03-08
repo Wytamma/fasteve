@@ -1,5 +1,6 @@
 from fasteve import Fasteve, BaseSchema, Resource
 from starlette.testclient import TestClient
+import pytest
 
 
 class People(BaseSchema):
@@ -36,10 +37,9 @@ events = []
 def test_database_events():
     with TestClient(app) as test_client:
         response = test_client.get("/people")
-
-        assert "after_fetch_resource" in events
-        assert "after_fetch_item" not in events
-
+        data = {"name": "Curie"}
+        response = test_client.post("/people", json=data)
         response = test_client.get(f"/people/{response.json()['_data'][0]['_id']}")
 
-        assert "after_fetch_item" in events
+    assert "after_fetch_resource" in events
+    assert "after_fetch_item" in events
