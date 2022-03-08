@@ -30,13 +30,14 @@ jobs:
       - run: |
           black . --check
   mypy:
+    needs: black
     runs-on: ubuntu-latest
     steps:
       - uses: jpetrucciani/mypy-check@master
         with:
           mypy_flags: 'fasteve --disallow-untyped-defs'
   test:
-    needs: linting
+    needs: mypy
     strategy:
       fail-fast: true
       matrix:
