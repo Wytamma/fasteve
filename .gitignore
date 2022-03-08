@@ -10,3 +10,4 @@ Notes.md
 fasteve.egg-info
 dist
 build
+.DS_Store
