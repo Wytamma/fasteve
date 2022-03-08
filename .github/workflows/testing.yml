@@ -1,26 +1,100 @@
-name: Test
+name: testing
 
-on: [push]
+on:
+  push:
+    branches: 
+      - master
+      - main
 
 jobs:
-  test:
+  black:
     runs-on: ubuntu-latest
-    strategy:
-        matrix:
-          python-version: ['3.7', '3.8', '3.9']
     steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python     
+      #----------------------------------------------
       - uses: actions/checkout@v2
-      - name: Setup python
+      - uses: actions/setup-python@v2
+      #----------------------------------------------
+      #        load pip cache if cache exists      
+      #----------------------------------------------
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip
+          restore-keys: ${{ runner.os }}-pip
+      #----------------------------------------------
+      #          install and run linters      
+      #----------------------------------------------
+      - run: python -m pip install black
+      - run: |
+          black . --check
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      # or specify additional mypy flags!
+      uses: jpetrucciani/mypy-check@master
+      with:
+        mypy_flags: 'fasteve --disallow-untyped-defs'
+  test:
+    needs: linting
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ "ubuntu-latest", "macos-latest" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python     
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up python ${{ matrix.python-version }}
+        id: setup-python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install pipenv
-        uses: dschep/install-pipenv-action@v1
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----      
+      #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+      #----------------------------------------------
+      #       load cached venv if cache exists      
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # install dependencies if cache does not exist 
+      #----------------------------------------------
       - name: Install dependencies
-        run: pipenv install --dev --skip-lock
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.3.0
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      #----------------------------------------------
+      # install your root project, if required 
+      #----------------------------------------------      
+      - name: Install library
+        run: poetry install --no-interaction
+      #----------------------------------------------
+      #    run test suite and output coverage file   
+      #----------------------------------------------
       - name: Test with pytest
-        run: pipenv run bash ./scripts/test.sh
-      - name: Upload coverage to Codecov
+        run: poetry run pytest --cov=pybeast --cov-report=xml
+      #----------------------------------------------
+      #             upload coverage stats              
+      # (requires CODECOV_TOKEN in repository secrets)   
+      #----------------------------------------------
+      - name: Upload coverage
         uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true

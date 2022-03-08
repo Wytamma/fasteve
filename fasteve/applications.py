@@ -47,12 +47,15 @@ class Fasteve(FastAPI):
         self._register_home_endpoint()
 
         # connect to db
-        MongoClient.connect()
+        # TODO: replace with abstract datalayer call i.e.
+        # self.data.connect()
+        # or connect on init_app?
+        # MongoClient.connect()
 
         self.data = data(app=self)  # eve pattern
 
         for resource in self.resources:
-            self.create_mongo_index(resource)
+            self.create_mongo_index(resource)  # TODO: move to datalayer
 
         for resource in self.resources:
             self.register_resource(resource)
@@ -60,8 +63,13 @@ class Fasteve(FastAPI):
         self.events = Events(resources)
         setattr(self.router, "add_event_handler", self.add_event_handler)
         self.add_event_handler(
+            "startup", MongoClient.connect
+        )  # this can't be in the application layer i.e. needs to come from data layer
+        # self.data.close()?
+        self.add_event_handler(
             "shutdown", MongoClient.close
         )  # this can't be in the application layer i.e. needs to come from data layer
+        # self.data.close()?
 
     def add_event_handler(self, event_type: str, func: Callable) -> None:
         if event_type == "startup":
@@ -278,7 +286,7 @@ class Fasteve(FastAPI):
         )
 
     def _register_home_endpoint(self) -> None:
-        self.add_api_route(f"/", home_endpoint)
+        self.add_api_route(f"/", home_endpoint, methods=["GET"])
 
     def _register_resource_middleware(self) -> None:
         """Pass resources to every request"""
@@ -318,4 +326,4 @@ class Fasteve(FastAPI):
         for resource in resources:
             # check methods i.e. post only on resource
             # check alt_id is unique
-            pass
+            print("Skipping validating:", resource)

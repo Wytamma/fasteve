@@ -17,7 +17,7 @@ db = DataBase()
 
 class MongoClient(Client):
     @classmethod
-    async def get_database(cls) -> AsyncIOMotorClient:
+    def get_database(cls) -> AsyncIOMotorClient:
         return db.client
 
     @classmethod
@@ -41,6 +41,7 @@ class Mongo(DataLayer):
 
     def init_app(self) -> None:
         self.mongo_prefix = None
+        MongoClient.connect()
 
     async def get_collection(self, resource: Resource) -> Collection:
         # maybe it would be better to use inject db with
@@ -49,7 +50,7 @@ class Mongo(DataLayer):
         # However, then I have to pass the db all the way down to the
         # datalayer...
         try:
-            client = await MongoClient.get_database()
+            client = MongoClient.get_database()
         except Exception as e:
             HTTPException(500, e)
         return client[config.MONGODB_DATABASE][resource.name]

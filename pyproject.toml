@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "fasteve"
+version = "0.1.3"
+description = "A simple and feature complete REST API framework designed for speed"
+authors = ["Wytamma Wirth <wytamma.wirth@me.com>"]
+license = "BSD-3-Clause-Clear"
+
+[tool.poetry.dependencies]
+python = ">=3.6.2,<4.0"
+email-validator = "=1.1.1"
+uvicorn = "^0.16.0"
+motor = "^2.5.1"
+fastapi = "^0.70.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+mypy = "^0.920"
+black = "^21.12b0"
+requests = "^2.26.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

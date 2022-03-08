@@ -21,7 +21,7 @@ async def process_item_request(
     if request.method not in methods:
         raise HTTPException(405)
     try:
-        res = await methods[request.method](request, item_id)  # type: ignore
+        res = await methods[request.method](request, item_id)
     except DuplicateKeyError as e:
         msg = render_pymongo_error(e.details)
         raise HTTPException(422, msg)
@@ -30,7 +30,7 @@ async def process_item_request(
         raise HTTPException(422, msg)
     except Exception as e:
         raise e
-    return res
+    return res  # type: ignore
 
 
 def item_endpoint_factory(resource: Resource, method: str) -> Callable:
