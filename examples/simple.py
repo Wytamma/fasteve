@@ -1,18 +1,17 @@
-from fasteve import Fasteve, BaseSchema, Resource
+from fasteve import Fasteve, MongoModel, Resource, MongoObjectId, MongoField as Field
 from typing import Optional
 
 
-class People(BaseSchema):
-    name: str
-    age: int
+class People(MongoModel):
+    id: Optional[MongoObjectId] = Field(alias="_id")
+    name: Optional[str]
 
 
 people = Resource(
     name="people",
-    schema=People,
+    model=People,
     resource_methods=["GET", "POST", "DELETE"],
     item_methods=["GET", "DELETE", "PUT", "PATCH"],
-    bulk_inserts=False,
 )
 
 resources = [people]

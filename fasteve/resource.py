@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Type
-from pydantic import BaseModel
+from fasteve.model import BaseModel
 
 
 @dataclass
 class Resource:
-    schema: Type[BaseModel]  # in the db
+    model: Type[BaseModel]  # in the db
     name: str = ""
     item_name: str = ""
     resource_methods: List[str] = field(default_factory=lambda: ["GET"])
     item_methods: List[str] = field(default_factory=lambda: ["GET"])
-    response_model: Type[BaseModel] = None  # type: ignore # schema used as default
-    response_model_include: set = field(default_factory=lambda: set())  # TODO
-    response_model_exclude: set = field(default_factory=lambda: set())  # TODO
+    response_model: Type[BaseModel] = None  # type: ignore # model used as default
+    create_model: Type[BaseModel] = None  # type: ignore # model used as default
+    update_model: Type[BaseModel] = None  # type: ignore # create_model used as default
     alt_id: Optional[str] = None
     sub_resources: List[SubResource] = field(default_factory=lambda: list())
 
@@ -23,18 +23,26 @@ class Resource:
     sorting: bool = True
     embedding: bool = True
     datasource: Optional[dict] = None
-    bulk_inserts: bool = True
+    bulk_create: bool = True
 
     def __post_init__(self) -> None:
         if not self.name:
-            self.name = self.schema.__name__.lower()
+            self.name = self.model.__name__.lower()
+
         if not self.item_name:
             if self.name.endswith("s"):
                 self.item_name = self.name[:-1]
             else:
                 self.item_name = self.name
+
         if not self.response_model:
-            self.response_model = self.schema
+            self.response_model = self.model
+
+        if not self.create_model:
+            self.create_model = self.model
+
+        if not self.update_model:
+            self.update_model = self.create_model
 
 
 @dataclass
@@ -46,4 +54,4 @@ class SubResource:
 
     def __post_init__(self) -> None:
         if not self.name:
-            self.name = self.resource.schema.name  # type: ignore # set name to resource schema name by default
+            self.name = self.resource.model.name  # type: ignore # set name to resource model name by default

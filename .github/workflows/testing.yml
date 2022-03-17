@@ -102,10 +102,10 @@ jobs:
       #----------------------------------------------
       # install MongoDB
       #----------------------------------------------    
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.7.0
-        with:
-          mongodb-version: 5.0
+      # - name: Start MongoDB
+      #   uses: supercharge/mongodb-github-action@1.7.0
+      #   with:
+      #     mongodb-version: 5.0
       #----------------------------------------------
       #    run test suite and output coverage file   
       #----------------------------------------------

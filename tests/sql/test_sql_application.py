@@ -1,27 +1,28 @@
-from fasteve import Fasteve, BaseSchema, Resource
+from typing import Optional
 from starlette.testclient import TestClient
 import pytest
-from fasteve.io.mongo import MongoClient
-from bson import ObjectId
+
+from fasteve import Fasteve, Resource, SQLModel, SQLDataLayer
+from sqlmodel import Field
 
 
-class People(BaseSchema):
-    name: str
+class People(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True)
+    name: str = Field()
 
 
 people = Resource(
-    name="people",
-    schema=People,
+    model=People,
     resource_methods=["GET", "POST", "DELETE"],
     item_methods=["GET", "DELETE", "PUT", "PATCH"],
 )
 
 resources = [people]
-app = Fasteve(resources=resources)
-app.config.MONGODB_DATABASE = "testing"
+
+app = Fasteve(resources=resources, data=SQLDataLayer)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def test_client():
 
     with TestClient(app) as test_client:
@@ -64,7 +65,7 @@ def test_insert(test_client, path, data, expected_status, expected_response):
     assert response.status_code == expected_status
     # what's the correct response?
     assert response.json()["_data"][0]["name"] == expected_response["name"]
-    assert "_id" in response.json()["_data"][0].keys()
+    assert "id" in response.json()["_data"][0].keys()
 
 
 @pytest.mark.parametrize(
@@ -102,10 +103,11 @@ def test_bulk_insert(test_client, path, data, expected_status, expected_response
 def test_get_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
     response.json()["_data"][0]
-    item_id = response.json()["_data"][0]["_id"]
-    response = test_client.get(path + f"/{item_id}")
+    itemid = response.json()["_data"][0]["id"]
+    response = test_client.get(path + f"/{itemid}")
+    print(response.json())
     assert response.status_code == expected_status
-    assert item_id == response.json()["_data"][0]["_id"]
+    assert itemid == response.json()["_data"][0]["id"]
 
 
 @pytest.mark.parametrize(
@@ -130,10 +132,10 @@ def test_delete_path(test_client, path, data, expected_status):
 )
 def test_delete_item(test_client, path, data, expected_status):
     response = test_client.post(path, json=data)  # insert data for test
-    item_id = response.json()["_data"][0]["_id"]
-    response = test_client.delete(path + f"/{item_id}")
+    itemid = response.json()["_data"][0]["id"]
+    response = test_client.delete(path + f"/{itemid}")
     assert response.status_code == expected_status
-    response = test_client.get(path + f"/{item_id}")
+    response = test_client.get(path + f"/{itemid}")
     assert response.status_code == 404
 
 
@@ -145,13 +147,13 @@ def test_delete_item(test_client, path, data, expected_status):
 )
 def test_put_replace_item(test_client, path, data, expected_status):
     response = test_client.post(path, json={"name": "Curie"})  # insert data for test
-    item_id = response.json()["_data"][0]["_id"]
-    response = test_client.put(path + f"/{item_id}", json=data)
+    itemid = response.json()["_data"][0]["id"]
+    response = test_client.put(path + f"/{itemid}", json=data)
     assert response.status_code == expected_status
-    response = test_client.get(path + f"/{item_id}")
+    response = test_client.get(path + f"/{itemid}")
     item = response.json()["_data"][0]
     assert item["name"] == data["name"]
-    assert item["_id"] == item_id
+    assert item["id"] == itemid
 
 
 @pytest.mark.parametrize(
@@ -161,14 +163,14 @@ def test_put_replace_item(test_client, path, data, expected_status):
     ],
 )
 def test_put_insert_item(test_client, path, data, expected_status):
-    item_id = str(ObjectId())
-    response = test_client.put(path + f"/{item_id}", json=data)
+    itemid = 42
+    response = test_client.put(path + f"/{itemid}", json=data)
     assert response.status_code == expected_status
-    response = test_client.get(path + f"/{item_id}")
+    response = test_client.get(path + f"/{itemid}")
     assert response.status_code == 200
     item = response.json()["_data"][0]
     assert item["name"] == data["name"]
-    assert item["_id"] == item_id
+    assert item["id"] == itemid
 
 
 @pytest.mark.parametrize(
@@ -179,10 +181,10 @@ def test_put_insert_item(test_client, path, data, expected_status):
 )
 def test_patch_item(test_client, path, data, expected_status):
     response = test_client.post(path, json={"name": "Curie"})  # insert data for test
-    item_id = response.json()["_data"][0]["_id"]
-    response = test_client.patch(path + f"/{item_id}", json=data)
+    itemid = response.json()["_data"][0]["id"]
+    response = test_client.patch(path + f"/{itemid}", json=data)
     assert response.status_code == expected_status
-    response = test_client.get(path + f"/{item_id}")
+    response = test_client.get(path + f"/{itemid}")
     item = response.json()["_data"][0]
     assert item["name"] == data["name"]
-    assert item["_id"] == item_id
+    assert item["id"] == itemid

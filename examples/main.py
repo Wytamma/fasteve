@@ -1,33 +1,33 @@
-from fasteve import Fasteve, BaseSchema, Resource, ObjectID, SubResource
+from fasteve import Fasteve, MongoModel, Resource, MongoObjectId, SubResource
 from fasteve.utils import Unique, DataRelation
 from typing import Optional, List, NewType, Union, Any
-from pydantic import EmailStr, SecretStr, Field, BaseModel
+from pydantic import EmailStr, SecretStr, Field, MongoModel
 from datetime import datetime
 from time import sleep
 
 
-class Data(BaseSchema):
+class Data(MongoModel):
     date: datetime  # datetime.date not supported by mongo
     confirmed: int
     deaths: int
     recovered: int
-    country_id: ObjectID
+    country_id: MongoObjectId
 
 
 data = Resource(
-    schema=Data, resource_methods=["GET", "POST", "DELETE"], item_name="datum"
+    model=Data, resource_methods=["GET", "POST", "DELETE"], item_name="datum"
 )
 
 
-class Leader(BaseSchema):
+class Leader(MongoModel):
     name: str
     age: int
 
 
-leader = Resource(schema=Leader, resource_methods=["GET", "POST", "DELETE"])
+leader = Resource(model=Leader, resource_methods=["GET", "POST", "DELETE"])
 
 
-class Countries(BaseSchema):
+class Countries(MongoModel):
     name: Unique(str)
     # leader: DataRelation = leader
 
@@ -35,7 +35,7 @@ class Countries(BaseSchema):
 data_sub_resource = SubResource(resource=data, id_field="country_id", name="data")
 
 countries = Resource(
-    schema=Countries,
+    model=Countries,
     resource_methods=["GET", "POST", "DELETE"],
     item_name="country",
     alt_id="name",

@@ -2,7 +2,8 @@ import hashlib
 from json import dumps
 from typing import Any, List
 from .resource import Resource
-from pydantic import Field
+from pydantic import Field as MongoField
+from sqlmodel import Field as SQLField
 
 
 def document_etag(value: dict, ignore_fields: List[str] = None) -> str:
@@ -22,7 +23,7 @@ def DataRelation(resource: Resource, optional: bool = True) -> Any:
     # basically i just want to use Option[] on the type
     #
     if optional:
-        Relation = Field(None, data_relation=resource)
+        Relation = MongoField(None, data_relation=resource)
     else:
-        Relation = Field(..., data_relation=resource)
+        Relation = MongoField(..., data_relation=resource)
     return Relation

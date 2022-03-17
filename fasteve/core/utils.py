@@ -23,7 +23,11 @@ def log(func: Callable) -> Callable:
     return wrapper
 
 
-class ObjectID(str):  # TODO: rename as ObjectId
+class InvalidMongoObjectId(ValueError):
+    pass
+
+
+class MongoObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls) -> Generator:
         yield cls.validate
@@ -31,12 +35,16 @@ class ObjectID(str):  # TODO: rename as ObjectId
     @classmethod
     def validate(cls, v: ObjectId) -> ObjectId:
         if not ObjectId.is_valid(str(v)):
-            raise ValueError(f"Not a valid ObjectId: {v}")
+            raise InvalidMongoObjectId(f"Not a valid ObjectId: {v}")
         return ObjectId(str(v))
 
     @classmethod
     def is_valid(cls, v: ObjectId) -> bool:
         return ObjectId.is_valid(str(v))
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        field_schema.update(type="string")
 
 
 test_type = NewType("test_type", str)

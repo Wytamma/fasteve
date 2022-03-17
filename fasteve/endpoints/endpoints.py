@@ -1,12 +1,11 @@
 from starlette.requests import Request
 from fasteve.methods import delete, get, post
 from fastapi import HTTPException
-from fasteve.core import config
 from fastapi import Path
 from fastapi.responses import JSONResponse
 from typing import Callable, Optional, Union
 from fasteve.resource import Resource, SubResource
-from fasteve.core.utils import log, ObjectID
+from fasteve.core.utils import log, MongoObjectId
 from fasteve.endpoints.documents import process_item_request
 from pymongo.errors import DuplicateKeyError, BulkWriteError
 from fasteve.io.mongo.utils import render_pymongo_error
@@ -14,7 +13,7 @@ from fasteve.io.mongo.utils import render_pymongo_error
 
 @log
 async def process_subresource_request(
-    request: Request, item_id: Union[ObjectID, str]
+    request: Request, item_id: Union[MongoObjectId, str]
 ) -> dict:
     methods: dict = {"GET": get, "POST": post, "DELETE": delete}
     if request.method not in methods:
@@ -39,12 +38,12 @@ def subresource_endpoint_factory(
     # i think that's okay as I'll have to do it anyway for aggergation
 
     if method in ("GET", "HEAD"):  # not sure why this...
-        # no schema validation on GET request
+        # no model validation on GET request
         if resource.alt_id:
 
             async def subresource_endpoint_with_alt_id(
                 request: Request,
-                item_id: Union[ObjectID, str] = Path(
+                item_id: Union[MongoObjectId, int, str] = Path(
                     ..., alias=f"{resource.item_name}_id"
                 ),
             ) -> dict:
@@ -55,7 +54,9 @@ def subresource_endpoint_factory(
 
             async def subresource_endpoint(
                 request: Request,
-                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+                item_id: Union[MongoObjectId, int] = Path(
+                    ..., alias=f"{resource.item_name}_id"
+                ),
             ) -> Optional[dict]:
                 return await process_item_request(request, item_id)
 
@@ -67,9 +68,9 @@ def subresource_endpoint_factory(
 
 async def home_endpoint(request: Request) -> JSONResponse:
     response = {}
-    if config.HATEOAS:  # move to repare response function
+    if request.app.config.HATEOAS:  # move to repare response function
         links = []
         for resource in request.app.resources:
             links.append({"href": f"/{resource.name}", "title": f"{resource.name}"})
-        response[config.LINKS] = {"child": links}
+        response[request.app.config.LINKS] = {"child": links}
     return JSONResponse(content=response)

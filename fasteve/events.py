@@ -17,9 +17,9 @@ class Events:
                 setattr(self, f"after_{method}_{resource.name}", [])
 
         # db events
-        self.add("after", "fetch", levels=["resource", "item"])
-        self.add("before", "insert", ["items"])  # resource?
-        self.add("after", "insert", ["items"])  # resource?
+        self.add("after", "read", levels=["resource", "item"])
+        self.add("before", "create", ["items"])  # resource?
+        self.add("after", "create", ["items"])  # resource?
         self.add("before", "replace", ["item"])
         self.add("after", "replace", ["item"])
         self.add("before", "update", ["item"])
