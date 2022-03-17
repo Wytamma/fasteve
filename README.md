@@ -105,6 +105,7 @@ distributed under the `BSD license`
 Latest Changes
 -
 
+* :sparkles: add SQL support via sqlmodel. PR [#21](https://github.com/Wytamma/fasteve/pull/21) by [@Wytamma](https://github.com/Wytamma).
 * :tada: v0.1.3. PR [#20](https://github.com/Wytamma/fasteve/pull/20) by [@Wytamma](https://github.com/Wytamma).
 * :sparkles: Add event hooks. PR [#17](https://github.com/Wytamma/fasteve/pull/17) by [@Wytamma](https://github.com/Wytamma).
 * :sparkles: break up endpoints. PR [#16](https://github.com/Wytamma/fasteve/pull/16) by [@Wytamma](https://github.com/Wytamma).
