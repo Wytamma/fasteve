@@ -69,7 +69,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
             model = resource.update_model
         if resource.alt_id:
             # TODO: REFACTOR
-            async def mod_item_endpoint_with_alt_id(
+            async def modify_item_endpoint_with_alt_id(
                 request: Request,
                 model: model,  # type: ignore
                 item_id: Union[MongoObjectId, str, int] = Path(
@@ -79,10 +79,10 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
                 setattr(request, "payload", model.dict(exclude_unset=True))  # type: ignore
                 return await process_item_request(request, item_id)
 
-            return mod_item_endpoint_with_alt_id
+            return modify_item_endpoint_with_alt_id
         else:
 
-            async def mod_item_endpoint(
+            async def modify_item_endpoint(
                 request: Request,
                 model: model,  # type: ignore
                 item_id: Union[MongoObjectId, int] = Path(
@@ -92,7 +92,7 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
                 setattr(request, "payload", model.dict(exclude_unset=True))  # type: ignore
                 return await process_item_request(request, item_id)
 
-            return mod_item_endpoint
+            return modify_item_endpoint
     else:
         raise Exception(f'"{method}" is an invalid HTTP method')
 

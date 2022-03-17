@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class People(MongoModel):
-    id: Optional[MongoObjectId] = Field(alias="_id")
+    #id: Optional[MongoObjectId] = Field(alias="_id")
     name: Optional[str]
 
 

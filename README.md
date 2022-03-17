@@ -52,6 +52,7 @@ HTTP/1.1 200
 
 Features (TODO)
 ---------------
+* Powered by FastAPI ✅
 * Emphasis on REST ✅
 * Full range of CRUD operations ✅
 * Customizable resource endpoints ✅
@@ -73,7 +74,6 @@ Features (TODO)
 * Alternative API docs (provided by ReDoc) ✅
 * Repeated Background Tasks ✅
 * MongoDB Support ✅
-* Powered by FastAPI ✅
 * SQL Support ✅
 * Predefined Database Filters
 * Projections

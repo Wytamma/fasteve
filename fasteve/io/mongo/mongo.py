@@ -1,11 +1,10 @@
-from pydantic import BaseModel
-from fasteve.io.base import Client, ConnectionException, DataLayer
+from fasteve.io.base import ConnectionException, DataLayer
 from fastapi import HTTPException
 from fasteve.resource import Resource
 from pymongo.collection import Collection
 from motor.motor_asyncio import AsyncIOMotorClient
-from fasteve.core.utils import log, MongoObjectId
-from typing import List, Tuple, Type
+from fasteve.core.utils import log
+from typing import List, Tuple
 
 
 class DataBase:
@@ -15,7 +14,7 @@ class DataBase:
 db = DataBase()
 
 
-class MongoClient(Client):
+class MongoClient:
     @classmethod
     def get_database(cls) -> AsyncIOMotorClient:
         return db.client
@@ -39,8 +38,12 @@ class MongoClient(Client):
 class MongoDataLayer(DataLayer):
     """MongoDB data access layer for Fasteve."""
 
-    def init_app(self) -> None:
+    def __init__(self, app) -> None:  # type: ignore
+        super().__init__(app)
         self.mongo_prefix = None
+
+    # def init_app(self) -> None:
+    #     print('*'*10, 'here')
 
     async def get_collection(self, resource: Resource) -> Collection:
         # maybe it would be better to use inject db with
@@ -127,7 +130,6 @@ class MongoDataLayer(DataLayer):
     async def create(self, resource: Resource, payload: dict) -> dict:
         """"""
         collection = await self.get_collection(resource)
-        print(payload)
         try:
             await collection.insert_one(payload)
         except Exception as e:

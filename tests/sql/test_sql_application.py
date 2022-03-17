@@ -105,7 +105,6 @@ def test_get_item(test_client, path, data, expected_status):
     response.json()["_data"][0]
     itemid = response.json()["_data"][0]["id"]
     response = test_client.get(path + f"/{itemid}")
-    print(response.json())
     assert response.status_code == expected_status
     assert itemid == response.json()["_data"][0]["id"]
 

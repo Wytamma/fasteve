@@ -57,7 +57,6 @@ def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
             await request.app.events.run("before_create_items", resource.name, payload)
             response = await process_collections_request(request)
             await request.app.events.run("after_create_items", resource.name, response)
-            print(response)
             return response
 
         return post_endpoint

@@ -3,7 +3,6 @@ from json import dumps
 from typing import Any, List
 from .resource import Resource
 from pydantic import Field as MongoField
-from sqlmodel import Field as SQLField
 
 
 def document_etag(value: dict, ignore_fields: List[str] = None) -> str:

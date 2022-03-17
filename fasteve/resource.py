@@ -1,20 +1,19 @@
 from __future__ import annotations
-
 from dataclasses import dataclass, field
-from typing import List, Optional, Type
-from fasteve.model import BaseModel
+from typing import List, Optional, Union
+from fasteve.model import SQLModel, MongoModel
 
 
 @dataclass
 class Resource:
-    model: Type[BaseModel]  # in the db
+    model: Union[MongoModel, SQLModel]  # in the db
     name: str = ""
     item_name: str = ""
     resource_methods: List[str] = field(default_factory=lambda: ["GET"])
     item_methods: List[str] = field(default_factory=lambda: ["GET"])
-    response_model: Type[BaseModel] = None  # type: ignore # model used as default
-    create_model: Type[BaseModel] = None  # type: ignore # model used as default
-    update_model: Type[BaseModel] = None  # type: ignore # create_model used as default
+    response_model: Union[MongoModel, SQLModel] = None  # type: ignore # model used as default
+    create_model: Union[MongoModel, SQLModel] = None  # type: ignore # model used as default
+    update_model: Union[MongoModel, SQLModel] = None  # type: ignore # create_model used as default
     alt_id: Optional[str] = None
     sub_resources: List[SubResource] = field(default_factory=lambda: list())
 
@@ -27,7 +26,7 @@ class Resource:
 
     def __post_init__(self) -> None:
         if not self.name:
-            self.name = self.model.__name__.lower()
+            self.name = self.model.__name__.lower()  # type: ignore
 
         if not self.item_name:
             if self.name.endswith("s"):

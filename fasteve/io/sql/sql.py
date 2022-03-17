@@ -2,7 +2,7 @@ from fasteve.io.base import DataLayer
 from fasteve.model import SQLModel
 from fasteve.resource import Resource
 from fasteve.core.utils import log
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Type
 from sqlmodel import Session, create_engine, select, delete
 
 
@@ -11,14 +11,15 @@ class SQLDataLayer(DataLayer):
     SQLAlchemy data access layer for fasteve.
     """
 
-    def init_app(self):
+    def __init__(self, app) -> None:  # type: ignore
+        super().__init__(app)
         connect_args = {"check_same_thread": False}
         self.engine = create_engine(
             self.app.config.SQL_URI, echo=True, connect_args=connect_args
         )
 
-    def get_model(self, resource: Resource) -> SQLModel:
-        return resource.model
+    def get_model(self, resource: Resource) -> Type[SQLModel]:
+        return resource.model  # type: ignore
 
     def connect(self) -> None:
         SQLModel.metadata.create_all(self.engine)
@@ -31,24 +32,25 @@ class SQLDataLayer(DataLayer):
     ) -> Tuple[List[dict], int]:
         Model = self.get_model(resource)
         with Session(self.engine) as session:
-            res = session.exec(select(Model)).all()
-            return res, len(res)
+            models = session.exec(select(Model)).all()  # type: ignore
+            return [model.dict() for model in models], len(models)
 
-    async def find_one(self, resource: Resource, query: dict) -> dict:
+    async def find_one(self, resource: Resource, query: dict) -> Optional[dict]:
         """"""
         Model = self.get_model(resource)
         with Session(self.engine) as session:
             where = [getattr(Model, key) == value for key, value in query.items()]
-            res = session.exec(select(Model).where(*where)).first()
-            return res
+            model = session.exec(select(Model).where(*where)).first()  # type: ignore
+        if model:
+            return model.dict()
+        return None
 
     @log
-    async def create(self, resource: Resource, payload: dict) -> dict:
+    async def create(self, resource: Resource, payload: dict) -> SQLModel:
         """"""
         Model = self.get_model(resource)
         model = Model(**payload)
 
-        print("here", model)
         with Session(self.engine) as session:
             session.add(model)
             session.commit()
@@ -64,7 +66,7 @@ class SQLDataLayer(DataLayer):
             session.commit()
             for model in models:
                 session.refresh(model)
-        return models
+        return [model.dict() for model in models]
 
     async def remove(self, resource: Resource) -> None:
         """Removes an entire set of documents from a
@@ -72,7 +74,7 @@ class SQLDataLayer(DataLayer):
         """
         Model = self.get_model(resource)
         with Session(self.engine) as session:
-            session.exec(delete(Model))
+            session.exec(delete(Model))  # type: ignore
             session.commit()
 
     async def remove_item(self, resource: Resource, query: dict) -> None:
@@ -80,7 +82,7 @@ class SQLDataLayer(DataLayer):
         Model = self.get_model(resource)
         with Session(self.engine) as session:
             where = [getattr(Model, key) == value for key, value in query.items()]
-            model = session.exec(select(Model).where(*where)).first()
+            model = session.exec(select(Model).where(*where)).first()  # type: ignore
             session.delete(model)
             session.commit()
 
@@ -91,7 +93,7 @@ class SQLDataLayer(DataLayer):
         Model = self.get_model(resource)
         with Session(self.engine) as session:
             where = [getattr(Model, key) == value for key, value in query.items()]
-            model = session.exec(select(Model).where(*where)).first()
+            model = session.exec(select(Model).where(*where)).first()  # type: ignore
             for key, value in payload.items():
                 setattr(model, key, value)
             session.add(model)
@@ -102,7 +104,7 @@ class SQLDataLayer(DataLayer):
         Model = self.get_model(resource)
         with Session(self.engine) as session:
             where = [getattr(Model, key) == value for key, value in query.items()]
-            model = session.exec(select(Model).where(*where)).first()
+            model = session.exec(select(Model).where(*where)).first()  # type: ignore
             for key, value in payload.items():
                 setattr(model, key, value)
             session.add(model)

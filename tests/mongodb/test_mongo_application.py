@@ -22,7 +22,6 @@ resources = [people]
 
 
 app = Fasteve(resources=resources)
-print(app.config.MONGODB_NAME)
 
 
 @pytest.fixture(scope="module")

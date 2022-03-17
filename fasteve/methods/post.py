@@ -7,7 +7,7 @@ async def post(request: Request) -> dict:
 
     if len(payload) > 1:
         try:
-            # TODO: bulk create
+            # TODO: bulk create config
             documents = await request.app.data.create_many(
                 request.state.resource, payload
             )

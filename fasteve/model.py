@@ -10,12 +10,9 @@ class SQLModel(SQLModelBase):
     @classmethod
     def get_primary_key(cls) -> str:
         for field in cls.__fields__:
-            print(cls.__fields__[field].field_info)
-            if (
-                hasattr(cls.__fields__[field].field_info, "primary_key")
-                and cls.__fields__[field].field_info.primary_key
-            ):
-                return field
+            if hasattr(cls.__fields__[field].field_info, "primary_key"):
+                if cls.__fields__[field].field_info.primary_key:  # type: ignore
+                    return field
         raise ValueError(f"Could not find primary_key in {cls}")
 
     class Config:

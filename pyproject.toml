@@ -22,6 +22,7 @@ mypy = "^0.920"
 black = "^21.12b0"
 requests = "^2.26.0"
 docker = "^5.0.3"
+autoflake = "^1.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -43,7 +43,7 @@ class MongoObjectId(ObjectId):
         return ObjectId.is_valid(str(v))
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __modify_schema__(cls, field_schema: dict) -> None:
         field_schema.update(type="string")
 
 

@@ -34,19 +34,6 @@ class ConnectionException(Exception):
         return msg
 
 
-class Client:
-    """Database client where you connect to the database"""
-
-    async def get_database(self) -> None:
-        raise NotImplementedError
-
-    def connect(self) -> None:
-        raise NotImplementedError
-
-    def close(self) -> None:
-        raise NotImplementedError
-
-
 class DataLayer:
     """Base data layer class. Defines the interface that actual data-access
     classes, being subclasses, must implement.
@@ -67,7 +54,6 @@ class DataLayer:
         """Implements extension pattern."""
         if app is not None:
             self.app = app
-            self.init_app()
         else:
             self.app = None
 
@@ -127,7 +113,7 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    async def find_one(self, resource: Resource, lookup: dict) -> dict:
+    async def find_one(self, resource: Resource, lookup: dict) -> Optional[dict]:
         """Retrieves a single document/record. Consumed when a request hits an
         item endpoint (`/people/id/`).
 

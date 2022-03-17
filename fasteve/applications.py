@@ -8,28 +8,34 @@ from .endpoints import (
     subresource_endpoint_factory,
 )
 from .events import Events
-from .model import BaseResponseModel, ItemBaseResponseModel, BaseModel
+from .model import (
+    BaseResponseModel,
+    ItemBaseResponseModel,
+    BaseModel,
+    MongoModel,
+    SQLModel,
+)
 from typing import List, Type, Optional, Union, Callable
 from types import ModuleType
 from .resource import Resource
 from .io.mongo import MongoDataLayer
-from .io.base import DataLayer
+from .io.sql import SQLDataLayer
 from .core.utils import log, MongoObjectId, is_new_type, repeat_every as repeat
 from datetime import datetime
-from pydantic import Field, create_model, BaseModel as PydanticBaseModel
+from pydantic import Field, create_model
 import asyncio
 import logging
 
 
 class Fasteve(FastAPI):
-    resources: List[Resource] = []
-    cors_origins: List[str] = []
-    data: Type[DataLayer] = MongoDataLayer
+    resources: List[Resource]
+    cors_origins: List[str]
+    data: Union[MongoDataLayer, SQLDataLayer]
 
     def __init__(
         self,
         resources: List[Resource] = [],
-        data: Type[DataLayer] = MongoDataLayer,
+        data: Union[Type[MongoDataLayer], Type[SQLDataLayer]] = MongoDataLayer,
         cors_origins: List[str] = [],
     ) -> None:
 
@@ -53,10 +59,9 @@ class Fasteve(FastAPI):
 
         self.data = data(app=self)  # eve pattern
 
-        if type(self.data) == MongoDataLayer:
+        if type(self.data) == Type[MongoDataLayer]:
             # TODO: move to datalayer
             for resource in self.resources:
-                print(resource)
                 self.create_mongo_index(resource)
 
         for resource in self.resources:
@@ -186,7 +191,7 @@ class Fasteve(FastAPI):
     async def _create_mongo_index_internal(
         self, resource: Resource, field_name: str
     ) -> None:
-        collection = await self.data.get_collection(resource)
+        collection = await self.data.get_collection(resource=resource)  # type: ignore
         # TODO: index should be removed at some point...
         # or at least check to see if there is one already
         res = await collection.create_index(field_name, unique=True)  # type: ignore # TODO: move to data layer
@@ -227,8 +232,8 @@ class Fasteve(FastAPI):
         return merged_decorator
 
     def _embed_data_relation(
-        self, model: Type[PydanticBaseModel], response: bool = False
-    ) -> Type[PydanticBaseModel]:
+        self, model: Union[MongoModel, SQLModel], response: bool = False
+    ) -> Union[MongoModel, SQLModel]:
 
         fields = model.__fields__.keys()
         for name in fields:
@@ -243,7 +248,7 @@ class Fasteve(FastAPI):
 
             if outer_type_ not in (MongoObjectId, List[MongoObjectId]):
                 raise ValueError(
-                    f"Data relation ({model.__name__}: {name}) must be must be type MongoObjectId or List[MongoObjectId]"
+                    f"Data relation ({model.__name__}: {name}) must be must be type MongoObjectId or List[MongoObjectId]"  # type: ignore
                 )
 
             if response:
@@ -272,8 +277,8 @@ class Fasteve(FastAPI):
         return model
 
     def _prepare_response_model(
-        self, response_model: Type[PydanticBaseModel], name: str
-    ) -> Type[PydanticBaseModel]:
+        self, response_model: Union[MongoModel, SQLModel], name: str
+    ) -> Union[MongoModel, SQLModel]:
         response_model.__config__.extra = "ignore"  # type: ignore
         return response_model
 
