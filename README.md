@@ -13,12 +13,12 @@ Fasteve is Simple
 
 Create a file `main.py` with:
 ```python
-from fasteve import Fasteve, BaseSchema, Resource
+from fasteve import Fasteve, MongoModel, Resource
 
-class People(BaseSchema):
+class People(MongoModel):
     name: str
 
-people = Resource(schema=People)
+people = Resource(model=People)
 resources = [people]
 
 app = Fasteve(resources=resources)
@@ -58,7 +58,7 @@ Features (TODO)
 * Sub Resources ✅
 * Pagination ✅
 * HATEOAS ✅
-* Bulk Inserts ✅
+* Bulk create ✅
 * Data Validation ✅
 * Extensible Data Validation ✅
 * Unique Fields ✅
@@ -74,6 +74,7 @@ Features (TODO)
 * Repeated Background Tasks ✅
 * MongoDB Support ✅
 * Powered by FastAPI ✅
+* SQL Support ✅
 * Predefined Database Filters
 * Projections
 * JSONP
@@ -93,7 +94,7 @@ Features (TODO)
 * Enhanced Logging
 * Operations Log
 * MongoDB Aggregation Framework
-* SQL Support
+
 
 License
 -------

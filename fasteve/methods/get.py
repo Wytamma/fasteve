@@ -1,10 +1,15 @@
 from starlette.requests import Request
-from fasteve.core.utils import log, ObjectID
-from fasteve.core import config
+from fasteve.core.utils import (
+    InvalidMongoObjectId,
+    log,
+    MongoObjectId,
+)
 from math import ceil
 from fastapi import HTTPException
 from typing import Union
 import json
+
+from fasteve.methods.common import get_item_internal
 
 
 @log
@@ -38,8 +43,8 @@ async def get(request: Request) -> dict:
         if not sub_resource:
             raise HTTPException(404)
         try:
-            query[sub_resource.id_field] = ObjectID.validate(item_id)
-        except ValueError:
+            query[sub_resource.id_field] = MongoObjectId.validate(item_id)
+        except InvalidMongoObjectId:
             lookup = {}
             lookup["from"] = resource.name
             lookup["localField"] = sub_resource.id_field
@@ -117,45 +122,42 @@ async def get(request: Request) -> dict:
             raise e
     response = {}
 
-    response[config.DATA] = documents
+    response[request.app.config.DATA] = documents
 
-    if config.PAGINATION:
-        response[config.META] = {
+    if request.app.config.PAGINATION:
+        response[request.app.config.META] = {
             "page": page,
             "max_results": limit,
             "total": count,
         }  # _meta_links(req, count)
 
-    if config.HATEOAS:
+    if request.app.config.HATEOAS:
         max_results = "&max_result=" + str(limit) if limit != 25 else ""
-        response[config.LINKS] = {
+        response[request.app.config.LINKS] = {
             "self": {"href": request["path"], "title": resource.name},
             "parent": {"href": "/", "title": "home"},
         }  # _pagination_links(resource, req, count)
         if count > limit:
-            response[config.LINKS]["next"] = {
+            response[request.app.config.LINKS]["next"] = {
                 "href": f"{request['path']}?page={page + 1}{max_results}",
                 "title": "next page",
             }
-            response[config.LINKS]["last"] = {
+            response[request.app.config.LINKS]["last"] = {
                 "href": f"{request['path']}?page={ceil(count / limit)}{max_results}",
                 "title": "last page",
             }
     return response
 
 
-async def get_item(request: Request, item_id: Union[ObjectID, str]) -> dict:
+async def get_item(request: Request, item_id: Union[MongoObjectId, int, str]) -> dict:
+
     try:
-        query = {"_id": ObjectID.validate(item_id)}
-    except ValueError:
-        query = {request.state.resource.alt_id: item_id}
-    try:
-        item = await request.app.data.find_one(request.state.resource, query)
-    except Exception as e:
-        raise e
+        item = await get_item_internal(request, item_id)
+    except InvalidMongoObjectId as e:
+        raise HTTPException(400, str(e))
+
     if not item:
         raise HTTPException(404)
     response = {}
-
-    response[config.DATA] = [item]
+    response[request.app.config.DATA] = [item]
     return response

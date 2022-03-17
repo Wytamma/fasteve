@@ -7,26 +7,29 @@ from .endpoints import (
     item_endpoint_factory,
     subresource_endpoint_factory,
 )
-from .core import config
 from .events import Events
-from .schema import BaseResponseSchema, BaseSchema, ItemBaseResponseSchema
+from .model import BaseResponseModel, ItemBaseResponseModel, BaseModel
 from typing import List, Type, Optional, Union, Callable
 from types import ModuleType
 from .resource import Resource
-from .io.mongo import Mongo, MongoClient
+from .io.mongo import MongoDataLayer
 from .io.base import DataLayer
-from .core.utils import log, ObjectID, is_new_type, repeat_every as repeat
+from .core.utils import log, MongoObjectId, is_new_type, repeat_every as repeat
 from datetime import datetime
-from pydantic import Field, create_model, BaseModel
+from pydantic import Field, create_model, BaseModel as PydanticBaseModel
 import asyncio
 import logging
 
 
 class Fasteve(FastAPI):
+    resources: List[Resource] = []
+    cors_origins: List[str] = []
+    data: Type[DataLayer] = MongoDataLayer
+
     def __init__(
         self,
         resources: List[Resource] = [],
-        data: Type[DataLayer] = Mongo,
+        data: Type[DataLayer] = MongoDataLayer,
         cors_origins: List[str] = [],
     ) -> None:
 
@@ -39,6 +42,8 @@ class Fasteve(FastAPI):
         self._validate_resources(resources)
         self.resources = resources
 
+        from .core import config
+
         self._validate_config(config)
         self.config = config
 
@@ -46,30 +51,21 @@ class Fasteve(FastAPI):
         self._register_CORS_middleware()
         self._register_home_endpoint()
 
-        # connect to db
-        # TODO: replace with abstract datalayer call i.e.
-        # self.data.connect()
-        # or connect on init_app?
-        # MongoClient.connect()
-
         self.data = data(app=self)  # eve pattern
 
-        for resource in self.resources:
-            self.create_mongo_index(resource)  # TODO: move to datalayer
+        if type(self.data) == MongoDataLayer:
+            # TODO: move to datalayer
+            for resource in self.resources:
+                print(resource)
+                self.create_mongo_index(resource)
 
         for resource in self.resources:
             self.register_resource(resource)
 
         self.events = Events(resources)
         setattr(self.router, "add_event_handler", self.add_event_handler)
-        self.add_event_handler(
-            "startup", MongoClient.connect
-        )  # this can't be in the application layer i.e. needs to come from data layer
-        # self.data.close()?
-        self.add_event_handler(
-            "shutdown", MongoClient.close
-        )  # this can't be in the application layer i.e. needs to come from data layer
-        # self.data.close()?
+        self.add_event_handler("startup", self.data.connect)
+        self.add_event_handler("shutdown", self.data.close)
 
     def add_event_handler(self, event_type: str, func: Callable) -> None:
         if event_type == "startup":
@@ -91,9 +87,9 @@ class Fasteve(FastAPI):
         router = APIRouter()
 
         # check models for data relations
-        resource.schema = self._embed_data_relation(resource.schema)
-        resource.schema.__config__.extra = (  # type: ignore
-            "forbid"  # type: ignore # TODO: this should be on the InSchema
+        resource.model = self._embed_data_relation(resource.model)
+        resource.model.__config__.extra = (  # type: ignore
+            "forbid"  # type: ignore # TODO: this should be on the InModel
         )
         resource.response_model = self._embed_data_relation(
             resource.response_model, response=True
@@ -102,17 +98,18 @@ class Fasteve(FastAPI):
         response_model = self._prepare_response_model(
             resource.response_model, resource.name
         )
+        resource.response_model = response_model
 
         Response = create_model(
-            f"ResponseSchema_{resource.name}",
-            data=(List[response_model], Field(..., alias="_data")),  # type: ignore
-            __base__=BaseResponseSchema,
+            f"ResponseModel_{resource.name}",
+            data=(List[response_model], Field(..., alias=self.config.DATA)),  # type: ignore
+            __base__=BaseResponseModel,
         )
 
         PostResponse = create_model(
-            f"PostResponseSchema_{resource.name}",
-            data=(List[response_model], Field(..., alias="_data")),  # type: ignore
-            __base__=BaseSchema,  # No meta or links
+            f"PostResponseModel_{resource.name}",
+            data=(List[response_model], Field(..., alias=self.config.DATA)),  # type: ignore
+            __base__=BaseModel,  # No meta or links
         )
 
         for method in resource.resource_methods:
@@ -142,9 +139,9 @@ class Fasteve(FastAPI):
                 )
 
         ItemResponse = create_model(
-            f"ItemResponseSchema_{resource.name}",
-            data=(List[response_model], Field(..., alias="_data")),  # type: ignore
-            __base__=ItemBaseResponseSchema,
+            f"ItemResponseModel_{resource.name}",
+            data=(List[response_model], Field(..., alias=self.config.DATA)),  # type: ignore
+            __base__=ItemBaseResponseModel,
         )
 
         for method in resource.item_methods:
@@ -166,9 +163,9 @@ class Fasteve(FastAPI):
 
         for sub_resource in resource.sub_resources:
             Response = create_model(
-                f"ResponseSchema_{resource.name}_sub_resource_{sub_resource.name}",
-                data=(List[sub_resource.resource.response_model], Field(..., alias="_data")),  # type: ignore
-                __base__=BaseResponseSchema,
+                f"ResponseModel_{resource.name}_sub_resource_{sub_resource.name}",
+                data=(List[sub_resource.resource.response_model], Field(..., alias=self.config.DATA)),  # type: ignore
+                __base__=BaseResponseModel,
             )
 
             print(f"Registering Sub Resource: {sub_resource.name}")
@@ -196,7 +193,7 @@ class Fasteve(FastAPI):
         print(f"Created unique index for {field_name} in {resource.name}")
 
     def create_mongo_index(self, resource: Resource) -> None:
-        fields = resource.schema.__fields__
+        fields = resource.model.__fields__
         for name in fields:
             field = fields[name]
             type_ = field.type_
@@ -230,8 +227,8 @@ class Fasteve(FastAPI):
         return merged_decorator
 
     def _embed_data_relation(
-        self, model: Type[BaseModel], response: bool = False
-    ) -> Type[BaseModel]:
+        self, model: Type[PydanticBaseModel], response: bool = False
+    ) -> Type[PydanticBaseModel]:
 
         fields = model.__fields__.keys()
         for name in fields:
@@ -244,16 +241,16 @@ class Fasteve(FastAPI):
             outer_type_ = field.outer_type_
             many = False
 
-            if outer_type_ not in (ObjectID, List[ObjectID]):
+            if outer_type_ not in (MongoObjectId, List[MongoObjectId]):
                 raise ValueError(
-                    f"Data relation ({model.__name__}: {name}) must be must be type ObjectID or List[ObjectID]"
+                    f"Data relation ({model.__name__}: {name}) must be must be type MongoObjectId or List[MongoObjectId]"
                 )
 
             if response:
                 response_model = self._prepare_response_model(
                     data_relation.response_model, data_relation.name + "_embedded"
                 )  # add ids, create, updated, ect
-                if outer_type_ == ObjectID:
+                if outer_type_ == MongoObjectId:
                     type_ = Union[Type[outer_type_], Type[response_model]]  # type: ignore # meta typing
                 else:
                     type_ = Union[Type[outer_type_], List[Type[response_model]]]  # type: ignore # meta typing
@@ -275,11 +272,14 @@ class Fasteve(FastAPI):
         return model
 
     def _prepare_response_model(
-        self, response_model: Type[BaseModel], name: str
-    ) -> Type[BaseModel]:
-        return create_model(
-            f"out_schema_{name}",
-            id=(ObjectID, Field(..., alias="_id")),
+        self, response_model: Type[PydanticBaseModel], name: str
+    ) -> Type[PydanticBaseModel]:
+        response_model.__config__.extra = "ignore"  # type: ignore
+        return response_model
+
+        create_model(
+            f"out_model_{name}",
+            id=(MongoObjectId, Field(..., alias="_id")),
             updated=(datetime, Field(..., alias="_updated")),
             created=(datetime, Field(..., alias="_created")),
             __base__=response_model,
@@ -299,13 +299,13 @@ class Fasteve(FastAPI):
         if self.cors_origins:
             # app level cors
             origins_raw = self.cors_origins
-        elif config.CORS_ORIGINS:
+        elif self.config.CORS_ORIGINS:
             # global cors
-            origins_raw = config.CORS_ORIGINS.split(",")
+            origins_raw = self.config.CORS_ORIGINS.split(",")
         # CORS
         origins = []
         # Set all CORS enabled origins
-        if config.CORS_ORIGINS:
+        if self.config.CORS_ORIGINS:
             for origin in origins_raw:
                 use_origin = origin.strip()
                 origins.append(use_origin)

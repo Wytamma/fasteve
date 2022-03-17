@@ -49,8 +49,7 @@ class Client:
 
 class DataLayer:
     """Base data layer class. Defines the interface that actual data-access
-    classes, being subclasses, must implement. Implemented as a Flask
-    extension.
+    classes, being subclasses, must implement.
 
     Admittedly, this interface is a Mongo rip-off. See the io.mongo
     package for an implementation example.
@@ -181,8 +180,8 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    def insert(self, resource: Resource, payload: dict) -> dict:
-        """Inserts a document into a resource collection/table.
+    def create(self, resource: Resource, payload: dict) -> dict:
+        """create a document into a resource collection/table.
 
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve both
@@ -192,8 +191,8 @@ class DataLayer:
         """
         raise NotImplementedError
 
-    async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
-        """Inserts a document into a resource collection/table.
+    async def create_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
+        """create a document into a resource collection/table.
 
         :param resource: resource being accessed. You should then use
                          the ``datasource`` helper function to retrieve both

@@ -29,42 +29,41 @@ async def process_collections_request(request: Request) -> dict:
 def collections_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create collection endpoints"""
     if method in ("GET", "HEAD"):
-        # no schema validation on GET request
+        # no model validation on GET request
         # query prams
         async def get_endpoint(
             request: Request, max_results: int = 25, page: int = 1, embedded: str = "{}"
         ) -> dict:
             response = await process_collections_request(request)
-            await request.app.events.run(
-                "after_fetch_resource", resource.name, response
-            )
+            await request.app.events.run("after_read_resource", resource.name, response)
             return response
 
         return get_endpoint
 
     elif method == "POST":
-        if resource.bulk_inserts:
-            schema = Union[List[resource.schema], resource.schema]  # type: ignore
+        if resource.bulk_create:
+            model = Union[List[resource.create_model], resource.create_model]  # type: ignore
         else:
-            schema = resource.schema  # type: ignore
+            model = resource.create_model  # type: ignore
 
-        async def post_endpoint(request: Request, schema: schema) -> dict:
+        async def post_endpoint(request: Request, model: model) -> dict:
             payload = (
-                [schema.dict() for schema in schema]  # type: ignore
-                if type(schema) == list
-                else [schema.dict()]  # type: ignore
+                [model.dict() for model in model]  # type: ignore
+                if type(model) == list
+                else [model.dict()]  # type: ignore
             )
 
             setattr(request, "payload", payload)
-            await request.app.events.run("before_insert_items", resource.name, payload)
+            await request.app.events.run("before_create_items", resource.name, payload)
             response = await process_collections_request(request)
-            await request.app.events.run("after_insert_items", resource.name, response)
+            await request.app.events.run("after_create_items", resource.name, response)
+            print(response)
             return response
 
         return post_endpoint
 
     elif method == "DELETE":
-        # no schema validation on DELETE HEAD request
+        # no model validation on DELETE HEAD request
         async def delete_endpoint(
             request: Request,
         ) -> dict:

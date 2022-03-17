@@ -1,29 +1,32 @@
-from fasteve import Fasteve, BaseSchema, Resource
+from typing import Optional
+from pydantic import Field
+from fasteve import Fasteve, MongoModel, Resource, MongoObjectId
 from starlette.testclient import TestClient
+
 import pytest
-from fasteve.io.mongo import MongoClient
-from bson import ObjectId
 
 
-class People(BaseSchema):
-    name: str
+class People(MongoModel):
+    id: Optional[MongoObjectId] = Field(alias="_id")
+    name: Optional[str]
 
 
 people = Resource(
     name="people",
-    schema=People,
+    model=People,
     resource_methods=["GET", "POST", "DELETE"],
     item_methods=["GET", "DELETE", "PUT", "PATCH"],
 )
 
 resources = [people]
+
+
 app = Fasteve(resources=resources)
-app.config.MONGODB_DATABASE = "testing"
+print(app.config.MONGODB_NAME)
 
 
 @pytest.fixture(scope="module")
 def test_client():
-
     with TestClient(app) as test_client:
         yield test_client
 
@@ -161,7 +164,7 @@ def test_put_replace_item(test_client, path, data, expected_status):
     ],
 )
 def test_put_insert_item(test_client, path, data, expected_status):
-    item_id = str(ObjectId())
+    item_id = str(MongoObjectId())
     response = test_client.put(path + f"/{item_id}", json=data)
     assert response.status_code == expected_status
     response = test_client.get(path + f"/{item_id}")

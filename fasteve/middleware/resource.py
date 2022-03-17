@@ -7,6 +7,8 @@ from ..resource import Resource
 
 
 class ResourceMiddleware(BaseHTTPMiddleware):
+    app: ASGIApp
+
     def __init__(self, app: ASGIApp, resources: List[Resource]) -> None:
         self.app = app
         self.dispatch_func = self.dispatch

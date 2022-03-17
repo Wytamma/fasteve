@@ -1,25 +1,25 @@
-from fasteve import Fasteve, BaseSchema, Resource
+from typing import Optional
+
+from fasteve import Fasteve, MongoModel, Resource, MongoObjectId
 from starlette.requests import Request
 from starlette.testclient import TestClient
+from pydantic import Field
 
 
-class People(BaseSchema):
-    name: str
+class People(MongoModel):
+    id: Optional[MongoObjectId] = Field(alias="_id")
+    name: Optional[str]
 
 
 people = Resource(
     name="people",
-    schema=People,
+    model=People,
     resource_methods=["GET", "POST", "DELETE"],
     item_methods=["GET", "DELETE", "PUT", "PATCH"],
 )
 
 resources = [people]
-
 app = Fasteve(resources=resources)
-
-app.config.MONGODB_DATABASE = "testing"
-
 
 # life cycle
 @app.on_event("startup")

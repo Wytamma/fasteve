@@ -4,13 +4,13 @@ from fastapi import HTTPException
 from fastapi import Path
 from typing import Callable, Optional, Union
 from fasteve.resource import Resource
-from fasteve.core.utils import ObjectID
+from fasteve.core.utils import MongoObjectId
 from pymongo.errors import DuplicateKeyError, BulkWriteError
 from fasteve.io.mongo.utils import render_pymongo_error
 
 
 async def process_item_request(
-    request: Request, item_id: Union[ObjectID, str]
+    request: Request, item_id: Union[MongoObjectId, str, int]
 ) -> Optional[dict]:
     methods = {
         "GET": get_item,
@@ -37,13 +37,13 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     """Dynamically create item endpoint"""
 
     if method in ("GET", "HEAD", "DELETE"):
-        # no schema validation on GET request
+        # no model validation on GET request
         # TODO: DELETE needs if-match header?
         if resource.alt_id:
 
             async def item_endpoint_with_alt_id(
                 request: Request,
-                item_id: Union[ObjectID, str] = Path(
+                item_id: Union[MongoObjectId, str, int] = Path(
                     ..., alias=f"{resource.item_name}_id"
                 ),
             ) -> Optional[dict]:
@@ -54,37 +54,29 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
             async def item_endpoint(
                 request: Request,
-                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+                item_id: Union[MongoObjectId, int] = Path(
+                    ..., alias=f"{resource.item_name}_id"
+                ),
             ) -> Optional[dict]:
                 response = await process_item_request(request, item_id)
-                await request.app.events.run(
-                    "after_fetch_item", resource.name, response
-                )
+                await request.app.events.run("after_read_item", resource.name, response)
                 return response
 
             return item_endpoint
     elif method in ["PUT", "PATCH"]:
-        schema = resource.schema
+        model = resource.create_model
         if method == "PATCH":
-            schema = type(
-                schema.__name__,
-                (schema,),
-                {},
-            )
-            fields = schema.__fields__
-            for field_name in fields:
-                fields[field_name].required = False
-            # schema.__fields__ = fields
+             model = resource.update_model
         if resource.alt_id:
-
+            #TODO: REFACTOR
             async def mod_item_endpoint_with_alt_id(
                 request: Request,
-                schema: schema,  # type: ignore
-                item_id: Union[ObjectID, str] = Path(
+                model: model,  # type: ignore
+                item_id: Union[MongoObjectId, str, int] = Path(
                     ..., alias=f"{resource.item_name}_id"
                 ),
             ) -> Optional[dict]:
-                setattr(request, "payload", schema.dict(exclude_unset=True))  # type: ignore
+                setattr(request, "payload", model.dict(exclude_unset=True))  # type: ignore
                 return await process_item_request(request, item_id)
 
             return mod_item_endpoint_with_alt_id
@@ -92,10 +84,12 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
 
             async def mod_item_endpoint(
                 request: Request,
-                schema: schema,  # type: ignore
-                item_id: ObjectID = Path(..., alias=f"{resource.item_name}_id"),
+                model: model,  # type: ignore
+                item_id: Union[MongoObjectId, int] = Path(
+                    ..., alias=f"{resource.item_name}_id"
+                ),
             ) -> Optional[dict]:
-                setattr(request, "payload", schema.dict(exclude_unset=True))  # type: ignore
+                setattr(request, "payload", model.dict(exclude_unset=True))  # type: ignore
                 return await process_item_request(request, item_id)
 
             return mod_item_endpoint

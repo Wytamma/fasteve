@@ -1,11 +1,11 @@
+from pydantic import BaseModel
 from fasteve.io.base import Client, ConnectionException, DataLayer
-from fasteve.core import config
 from fastapi import HTTPException
 from fasteve.resource import Resource
 from pymongo.collection import Collection
 from motor.motor_asyncio import AsyncIOMotorClient
-from fasteve.core.utils import log, ObjectID
-from typing import List, Tuple
+from fasteve.core.utils import log, MongoObjectId
+from typing import List, Tuple, Type
 
 
 class DataBase:
@@ -21,11 +21,11 @@ class MongoClient(Client):
         return db.client
 
     @classmethod
-    def connect(cls) -> None:
+    def connect(cls, MONGODB_URI: str, CONNECTION_TIMEOUT: int) -> None:
         try:
             client = AsyncIOMotorClient(
-                str(config.MONGODB_URI),
-                serverSelectionTimeoutMS=config.CONNECTION_TIMEOUT,
+                str(MONGODB_URI),
+                serverSelectionTimeoutMS=CONNECTION_TIMEOUT,
             )
         except Exception:
             raise ConnectionException
@@ -36,12 +36,11 @@ class MongoClient(Client):
         db.client.close()
 
 
-class Mongo(DataLayer):
+class MongoDataLayer(DataLayer):
     """MongoDB data access layer for Fasteve."""
 
     def init_app(self) -> None:
         self.mongo_prefix = None
-        MongoClient.connect()
 
     async def get_collection(self, resource: Resource) -> Collection:
         # maybe it would be better to use inject db with
@@ -53,7 +52,15 @@ class Mongo(DataLayer):
             client = MongoClient.get_database()
         except Exception as e:
             HTTPException(500, e)
-        return client[config.MONGODB_DATABASE][resource.name]
+        return client[self.app.config.MONGODB_NAME][resource.name]
+
+    def connect(self) -> None:
+        MongoClient.connect(
+            self.app.config.MONGODB_URI, self.app.config.CONNECTION_TIMEOUT
+        )
+
+    def close(self) -> None:
+        MongoClient.close()
 
     async def aggregate(
         self,
@@ -117,16 +124,17 @@ class Mongo(DataLayer):
         return item
 
     @log
-    async def insert(self, resource: Resource, payload: dict) -> dict:
+    async def create(self, resource: Resource, payload: dict) -> dict:
         """"""
         collection = await self.get_collection(resource)
+        print(payload)
         try:
             await collection.insert_one(payload)
         except Exception as e:
             raise e
         return payload
 
-    async def insert_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
+    async def create_many(self, resource: Resource, payload: List[dict]) -> List[dict]:
         """"""
         collection = await self.get_collection(resource)
         try:
@@ -145,30 +153,30 @@ class Mongo(DataLayer):
         except Exception as e:
             raise e
 
-    async def remove_item(self, resource: Resource, item_id: ObjectID) -> None:
+    async def remove_item(self, resource: Resource, query: dict) -> None:
         """Removes a single document from a database collection."""
         collection = await self.get_collection(resource)
         try:
-            await collection.delete_one({"_id": item_id})
+            await collection.delete_one(query)
         except Exception as e:
             raise e
 
     async def replace_item(
-        self, resource: Resource, item_id: ObjectID, payload: dict
+        self, resource: Resource, query: dict, payload: dict
     ) -> None:
         """Replaces single document from a database collection"""
         collection = await self.get_collection(resource)
         try:
-            await collection.replace_one({"_id": item_id}, payload)
+            await collection.replace_one(query, payload)
         except Exception as e:
             raise e
 
     async def update_item(
-        self, resource: Resource, item_id: ObjectID, payload: dict
+        self, resource: Resource, query: dict, payload: dict
     ) -> None:
         """Updates single document from a database collection"""
         collection = await self.get_collection(resource)
         try:
-            await collection.update_one({"_id": item_id}, {"$set": payload})
+            await collection.update_one(query, {"$set": payload})
         except Exception as e:
             raise e
