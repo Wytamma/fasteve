@@ -171,9 +171,7 @@ class MongoDataLayer(DataLayer):
         except Exception as e:
             raise e
 
-    async def update_item(
-        self, resource: Resource, query: dict, payload: dict
-    ) -> None:
+    async def update_item(self, resource: Resource, query: dict, payload: dict) -> None:
         """Updates single document from a database collection"""
         collection = await self.get_collection(resource)
         try:

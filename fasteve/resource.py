@@ -28,16 +28,16 @@ class Resource:
     def __post_init__(self) -> None:
         if not self.name:
             self.name = self.model.__name__.lower()
-        
+
         if not self.item_name:
             if self.name.endswith("s"):
                 self.item_name = self.name[:-1]
             else:
                 self.item_name = self.name
-        
+
         if not self.response_model:
             self.response_model = self.model
-        
+
         if not self.create_model:
             self.create_model = self.model
 

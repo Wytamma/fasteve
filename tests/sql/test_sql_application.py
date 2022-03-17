@@ -5,6 +5,7 @@ import pytest
 from fasteve import Fasteve, Resource, SQLModel, SQLDataLayer
 from sqlmodel import Field
 
+
 class People(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True)
     name: str = Field()

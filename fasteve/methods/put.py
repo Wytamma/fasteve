@@ -7,7 +7,9 @@ from fastapi import Response
 from sqlmodel.main import SQLModelMetaclass
 
 
-async def put_item(request: Request, item_id: Union[MongoObjectId, int, str]) -> Response:
+async def put_item(
+    request: Request, item_id: Union[MongoObjectId, int, str]
+) -> Response:
     """Upsert"""
     original_item = await get_item_internal(request, item_id)
     payload = getattr(request, "payload")
@@ -16,7 +18,7 @@ async def put_item(request: Request, item_id: Union[MongoObjectId, int, str]) ->
     if type(request.state.resource.model) == SQLModelMetaclass:
         pk = request.state.resource.model.get_primary_key()
     elif MongoObjectId.is_valid(item_id):
-        pk = '_id'
+        pk = "_id"
 
     if not original_item:
         # create
@@ -30,7 +32,7 @@ async def put_item(request: Request, item_id: Union[MongoObjectId, int, str]) ->
     # replace
     try:
         document = await request.app.data.replace_item(
-            request.state.resource, {pk:item_id}, payload
+            request.state.resource, {pk: item_id}, payload
         )
     except Exception as e:
         raise e

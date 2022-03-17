@@ -66,9 +66,9 @@ def item_endpoint_factory(resource: Resource, method: str) -> Callable:
     elif method in ["PUT", "PATCH"]:
         model = resource.create_model
         if method == "PATCH":
-             model = resource.update_model
+            model = resource.update_model
         if resource.alt_id:
-            #TODO: REFACTOR
+            # TODO: REFACTOR
             async def mod_item_endpoint_with_alt_id(
                 request: Request,
                 model: model,  # type: ignore

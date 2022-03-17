@@ -96,10 +96,8 @@ class SQLDataLayer(DataLayer):
                 setattr(model, key, value)
             session.add(model)
             session.commit()
-    
-    async def update_item(
-        self, resource: Resource, query: dict, payload: dict
-    ) -> None:
+
+    async def update_item(self, resource: Resource, query: dict, payload: dict) -> None:
         """Updates single document from a database collection"""
         Model = self.get_model(resource)
         with Session(self.engine) as session:

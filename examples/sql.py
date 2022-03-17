@@ -2,8 +2,6 @@ from typing import Optional
 from fasteve import Fasteve, Resource, SQLModel, SQLField as Field
 from fasteve.io.sql import SQLDataLayer
 
-from typing import Optional
-
 
 class HeroBase(SQLModel):
     name: str = Field(index=True)
@@ -35,7 +33,7 @@ hero = Resource(
     create_model=HeroCreate,
     update_model=HeroUpdate,
     resource_methods=["GET", "POST"],
-    item_methods=["GET", "DELETE", "PATCH", "PUT"],
+    item_methods=["GET", "DELETE", "PATCH"],
 )
 
 resources = [hero]

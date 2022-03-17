@@ -22,6 +22,7 @@ def log(func: Callable) -> Callable:
 
     return wrapper
 
+
 class InvalidMongoObjectId(ValueError):
     pass
 
@@ -40,10 +41,10 @@ class MongoObjectId(ObjectId):
     @classmethod
     def is_valid(cls, v: ObjectId) -> bool:
         return ObjectId.is_valid(str(v))
-    
+
     @classmethod
     def __modify_schema__(cls, field_schema):
-        field_schema.update(type='string')
+        field_schema.update(type="string")
 
 
 test_type = NewType("test_type", str)

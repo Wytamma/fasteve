@@ -5,18 +5,22 @@ from bson import ObjectId
 
 json_encoders = {ObjectId: lambda x: str(x)}
 
+
 class SQLModel(SQLModelBase):
-    
     @classmethod
     def get_primary_key(cls) -> str:
         for field in cls.__fields__:
             print(cls.__fields__[field].field_info)
-            if hasattr(cls.__fields__[field].field_info, 'primary_key') and cls.__fields__[field].field_info.primary_key:
+            if (
+                hasattr(cls.__fields__[field].field_info, "primary_key")
+                and cls.__fields__[field].field_info.primary_key
+            ):
                 return field
         raise ValueError(f"Could not find primary_key in {cls}")
-    
+
     class Config:
         json_encoders = json_encoders
+
 
 class BaseModel(PydanticBaseModel):
     class Config:
