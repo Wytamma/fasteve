@@ -2,13 +2,12 @@ from typing import Optional
 from starlette.testclient import TestClient
 import pytest
 
-from fasteve import Fasteve, Resource, SQLModel, SQLDataLayer
-from sqlmodel import Field
+from fasteve import Fasteve, Resource, SQLModel, SQLDataLayer, SQLField
 
 
 class People(SQLModel, table=True):
-    id: Optional[int] = Field(primary_key=True)
-    name: str = Field()
+    id: Optional[int] = SQLField(primary_key=True)
+    name: str = SQLField()
 
 
 people = Resource(

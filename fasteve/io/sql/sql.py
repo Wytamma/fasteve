@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from fasteve.io.base import DataLayer
 from fasteve.model import SQLModel
 from fasteve.resource import Resource
@@ -32,8 +33,12 @@ class SQLDataLayer(DataLayer):
     ) -> Tuple[List[dict], int]:
         Model = self.get_model(resource)
         with Session(self.engine) as session:
-            models = session.exec(select(Model)).all()  # type: ignore
-            return [model.dict() for model in models], len(models)
+            statement = select(Model)
+            # offset is bad
+            # https://github.com/sqlalchemy/sqlalchemy/wiki/RangeQuery-and-WindowedRangeQuery
+            models = session.exec(statement.offset(skip).limit(limit)).all()  # type: ignore
+            count = session.exec(select(func.count()).select_from(Model)).one()
+            return [model.dict() for model in models], count
 
     async def find_one(self, resource: Resource, query: dict) -> Optional[dict]:
         """"""
