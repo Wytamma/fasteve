@@ -1,0 +1,34 @@
+site_name: FastEve
+theme:
+  name: material
+  logo: images/logo-small-white.svg
+  palette:
+    primary: red
+    accent: green
+repo_name: wytamma/fasteve
+repo_url: https://github.com/wytamma/fasteve
+nav:
+- Home: index.md
+
+markdown_extensions:
+- toc:
+    permalink: true
+- markdown.extensions.codehilite:
+    guess_lang: false
+- admonition
+- codehilite
+- md_in_html
+- extra
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_div_format ''
+- pymdownx.tabbed
+extra_css:
+- css/termynal.css
+- css/custom.css
+extra_javascript:
+- https://unpkg.com/mermaid@8.4.6/dist/mermaid.min.js
+- js/termynal.js
+- js/custom.js
