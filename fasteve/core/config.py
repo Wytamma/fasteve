@@ -17,6 +17,7 @@ MONGODB_URI = config(
 )
 MONGODB_NAME = config("FASTEVE_MONGODB_NAME", cast=str, default="fasteve_database")
 SQL_URI = config("FASTEVE_SQL_URI", cast=str, default="sqlite://")
+SQL_ECHO = config("FASTEVE_SQL_ECHO", cast=bool, default=False)
 CORS_ORIGINS = config("FASTEVE_CORS_ORIGINS", cast=str, default=None)
 CONNECTION_TIMEOUT = config("FASTEVE_CONNECTION_TIMEOUT", cast=int, default=10000)
 
