@@ -1,8 +1,9 @@
 ![fasteve logo](https://i.ibb.co/Czrk2L9/fasteve-logo.png)
 
 [![PyPi](https://img.shields.io/pypi/v/fasteve.svg)](https://pypi.org/project/fasteve/)
-[![testing](https://github.com/Wytamma/fasteve/actions/workflows/testing.yml/badge.svg)](https://github.com/Wytamma/fasteve/actions/workflows/testing.yml)
+[![testing](https://github.com/Wytamma/fasteve/workflows/testing/badge.svg)](https://github.com/Wytamma/fasteve/actions/workflows/testing.yml)
 [![coverage](https://codecov.io/gh/Wytamma/fasteve/branch/master/graph/badge.svg)](https://codecov.io/gh/Wytamma/fasteve)
+[![docs](https://github.com/Wytamma/fasteve/workflows/docs/badge.svg)](https://fasteve.wytamma.com/)
 [![image](https://img.shields.io/github/license/wytamma/fasteve.svg)](https://github.com/Wytamma/fasteve/blob/master/LICENSE)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://img.shields.io/badge/code%20style-black-000000.svg)
 
