@@ -15,11 +15,13 @@ class SQLDataLayer(DataLayer):
     def __init__(self, app) -> None:  # type: ignore
         super().__init__(app)
         connect_args = {}
-        if self.app.config.SQL_URI.startswith('sqlite'):
+        if self.app.config.SQL_URI.startswith("sqlite"):
             # only applied to sqlite connections
-            connect_args['check_same_thread'] = False
+            connect_args["check_same_thread"] = False
         self.engine = create_engine(
-            self.app.config.SQL_URI, echo=True, connect_args=connect_args
+            self.app.config.SQL_URI,
+            echo=self.app.config.SQL_ECHO,
+            connect_args=connect_args,
         )
 
     def get_model(self, resource: Resource) -> Type[SQLModel]:
@@ -36,12 +38,14 @@ class SQLDataLayer(DataLayer):
     ) -> Tuple[List[dict], int]:
         Model = self.get_model(resource)
         with Session(self.engine) as session:
-            where = [getattr(Model, key) == value for key, value in query.items()]
+            # where = [getattr(Model, key) == value for key, value in query.items()]
             statement = select(Model)
             # offset is bad
             # https://github.com/sqlalchemy/sqlalchemy/wiki/RangeQuery-and-WindowedRangeQuery
             models = session.exec(statement.offset(skip).limit(limit)).all()  # type: ignore
-            count = session.exec(select(func.count()).select_from(Model)).one()
+            count = int(
+                session.exec(select([func.count()]).select_from(Model)).one()
+            )  # type: ignore
             return [model.dict() for model in models], count
 
     async def find_one(self, resource: Resource, query: dict) -> Optional[dict]:
