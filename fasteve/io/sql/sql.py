@@ -14,7 +14,10 @@ class SQLDataLayer(DataLayer):
 
     def __init__(self, app) -> None:  # type: ignore
         super().__init__(app)
-        connect_args = {"check_same_thread": False}
+        connect_args = {}
+        if self.app.config.SQL_URI.startswith('sqlite'):
+            # only applied to sqlite connections
+            connect_args['check_same_thread'] = False
         self.engine = create_engine(
             self.app.config.SQL_URI, echo=True, connect_args=connect_args
         )
@@ -33,6 +36,7 @@ class SQLDataLayer(DataLayer):
     ) -> Tuple[List[dict], int]:
         Model = self.get_model(resource)
         with Session(self.engine) as session:
+            where = [getattr(Model, key) == value for key, value in query.items()]
             statement = select(Model)
             # offset is bad
             # https://github.com/sqlalchemy/sqlalchemy/wiki/RangeQuery-and-WindowedRangeQuery
